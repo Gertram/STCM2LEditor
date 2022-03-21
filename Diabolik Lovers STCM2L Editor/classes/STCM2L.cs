@@ -44,9 +44,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             try {
                 OriginalFile = File.ReadAllBytes(FilePath);
                 StartPosition = FindStart();
-
+#if DEBUG
                 Console.WriteLine("Start at: 0x{0:X}", StartPosition);
-
+#endif
                 if (StartPosition == 0) {
                     return false;
                 }
@@ -60,8 +60,11 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                 return true;
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
+#if DEBUG
                 Console.WriteLine(e);
+#endif
                 return false;
             }
         }
@@ -88,7 +91,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 return true;
             }
             catch (Exception e) {
+#if DEBUG
                 Console.WriteLine(e);
+#endif
                 return false;
             }
         }
@@ -212,25 +217,61 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 }
 
                 currentAddress += action.Length;
+                
                 Actions.Add(action);
             }
             while (currentAddress < maxAddress);
 
             RecoverGlobalCalls(StartPosition);
 
+            /* foreach(var action in Actions)
+             {
+                 switch (action.OpCode)
+                 {
+                     case Action.ACTION_NAME:
+
+                         Console.WriteLine($"Name {action.GetStringFromParameter(0)}");
+                         break;
+                     case Action.ACTION_PLACE:
+                         Console.WriteLine($"Place {action.GetStringFromParameter(3)}");
+                         break;
+                     case Action.ACTION_TEXT:
+                         Console.WriteLine($"Text {action.GetStringFromParameter(0)}");
+                         break;
+                     default: 
+                         Console.WriteLine($"Unknown({action.OpCode})");
+                         break;
+
+                 }
+             }*/
+
+#if DEBUG
             Console.WriteLine("Found {0} actions.", Actions.Count);
+#endif
         }
 
         private void RecoverGlobalCalls (UInt32 startAddress) {
             UInt32 currentAddress = startAddress;
 
             foreach(Action action in Actions) {
-                if (Global.Calls.ContainsKey(currentAddress)) {
+                if (Global.Calls.ContainsKey(currentAddress))
+                {
                     List<Parameter> list = Global.Calls[currentAddress];
 
-                    foreach(Parameter parameter in list) {
+                    foreach (Parameter parameter in list)
+                    {
                         parameter.GlobalPointer = action;
                     }
+                   /* Console.WriteLine($"action in {currentAddress:X}");
+                    for (var i = 0; i < action.ParameterCount; i++)
+                    {
+                        Console.Write($"par{i}={action.Parameters[i].Text}");
+                        try
+                        {
+                            Console.WriteLine($"par{i}={action.GetStringFromParameter(i)}");
+                        }
+                        catch { }
+                    }*/
                 }
                 currentAddress += action.Length;
             }
@@ -253,8 +294,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                     Texts.Add(textEntity);
                 }
             }
-
+#if DEBUG
             Console.WriteLine("Read {0} texts.", Texts.Count);
+#endif
         }
 
         public void InsertText (int index, bool before, bool newPage) {
@@ -274,7 +316,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             }
 
             TextEntity text = new TextEntity(Actions, actionsEnd, name, newPage, before);
-
+            
             if (before) {
                 Texts.Insert(index, text);
                 AddLine(index, text.AmountInserted);

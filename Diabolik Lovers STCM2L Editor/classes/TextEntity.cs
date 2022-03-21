@@ -82,16 +82,17 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                         Name = new Line(actions[i].GetStringFromParameter(0));
                         NameAction = actions[i];
                     }
-                }
-                else if (opCode == Action.ACTION_PLACE) {
+                }/*
+                else if (opCode == Action.ACTION_PLACE)
+                {
                     string temp = actions[i].GetStringFromParameter(3);
 
                     Line line = new Line(temp);
 
                     Lines.Add(line);
                     PlaceActions.Add(actions[i]);
-                }
-                else {
+                }*/
+                else if(opCode == Action.ACTION_TEXT){
                     string temp = actions[i].GetStringFromParameter(0);
 
                     Line line = new Line(temp);

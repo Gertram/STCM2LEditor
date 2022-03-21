@@ -14,14 +14,26 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public const UInt32 ACTION_DIVIDER = 0xd3;
         public const UInt32 ACTION_NEW_PAGE = 0x1c1;
         public const UInt32 ACTION_PLACE = 0x79d0;
+        public const UInt32 ACTION_SHOW_PLACE = 0x227c;
 
         public UInt32 Length { get; set; }
         public UInt32 ParameterCount { get; set; }
         public UInt32 LocalParameterCount { get; set; }
         public UInt32 OldAddress { get; set; }
+        public string HexAddress { get => $"{OldAddress:X}"; }
         public UInt32 Address { get; set; }
         public UInt32 OpCode { get; set; }
         public UInt32 IsLocalCall { get; set; }
+        private string name;
+        public string Name
+        {
+            get
+            {
+                if (name == null)
+                    name = GetName();
+                return name;
+            }
+        }
 
         public byte[] ExtraData { get; set; }
         public UInt32 ExtraDataLength { get; set; }
@@ -52,6 +64,25 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             }
         }
 
+        protected virtual string GetName()
+        {
+            switch (OpCode)
+            {
+                case Action.ACTION_NAME:
+                    return $"Name {GetStringFromParameter(0)}";
+                case Action.ACTION_PLACE:
+                    return $"Place{ GetStringFromParameter(3)}";
+                case Action.ACTION_TEXT:
+                    return $"Text {GetStringFromParameter(0)}";
+                case ACTION_DIVIDER:
+                    return "Divider";
+                case ACTION_CHOICE:
+                    return "Choice";
+                default:
+                    return $"Unknown ({OpCode})";
+            }
+        }
+
         private void Init() {
             Length = 0;
             ParameterCount = 0;
@@ -65,7 +96,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             Parameters = new List<Parameter>();
         }
 
-        public void ReadFromFile (UInt32 address, byte[] file) {
+        public virtual void ReadFromFile (UInt32 address, byte[] file) {
             OldAddress = address;
 
             int seek = (int)address;
@@ -195,7 +226,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 Length += newExtraDataLength;
             }
         }
-
+        private bool first = true;
         public byte[] Write() {
             List<byte> byteAction = new List<byte>();
 
@@ -217,7 +248,13 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                     if (parameter.GlobalPointer == null) {
                         Console.WriteLine("Lol");
                     }
-                    byteAction.AddRange(BitConverter.GetBytes(parameter.GlobalPointer.Address));
+                    var addr = parameter.GlobalPointer.Address;
+                    if (addr < PlaceWindow.action1.Address)
+                    {
+                        Console.WriteLine($"{Address:X} {addr:X}");
+                    }
+
+                    byteAction.AddRange(BitConverter.GetBytes(addr));
                 }
                 else {
                     byteAction.AddRange(BitConverter.GetBytes(parameter.Value2));

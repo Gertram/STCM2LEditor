@@ -22,5 +22,12 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public Parameter() {
             GlobalPointer = null;
         }
+        public string TextValue
+        {
+            get
+            {
+                return $"{Value1:X} {Value2:X} {Value3:X}";
+            }
+        }
     }
 }
