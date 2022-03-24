@@ -29,7 +29,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
             this.file = file;
             ActionsList.DataContext = file.Actions;
             ActionsList.ItemsSource = file.Actions;
-            var ind = file.Actions.FindIndex(x => x.OpCode == classes.Action.ACTION_TEXT || x.OpCode == classes.Action.ACTION_NAME);
+            var ind = file.Actions.FindIndex(x => x.OpCode == ActionHelpers.ACTION_TEXT || x.OpCode == ActionHelpers.ACTION_NAME);
             ActionsList.SelectionChanged += ParamsList_SelectionChanged;
             if (ind == -1) ind = 0; ;
             var item = ActionsList.Items[ind];
@@ -48,9 +48,9 @@ namespace Diabolik_Lovers_STCM2L_Editor
         public class ParamValue
         {
             private int idx;
-            private classes.Action action;
+            private classes.ImmutableAction action;
 
-            internal ParamValue(int idx,classes.Action action)
+            internal ParamValue(int idx,classes.ImmutableAction action)
             {
                 this.idx = idx;
                 this.action = action;
@@ -60,25 +60,48 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 get
                 {
                     var par = action.Parameters[idx];
-                    if(par.Type == ParameterType.VALUE)
+                    if(par is GlobalParameter)
                     {
-                        return "Значение";
+                        return "Глобальный";
                     }
-                    if(par.Type == ParameterType.LOCAL_PARAMETER)
+                    if(par is LocalParameter)
                     {
                         return "Локальный";
                     }
-                    return "Глобальный";
+                    return "Значение";
+
                 }
             }
-            public string Value => action.Parameters[idx].TextValue;
-            public string Text
+            public string ExtraDataText
             {
                 get
                 {
                     try
                     {
-                        return action.GetStringFromParameter(idx);
+                        return "";
+                        //return action.GetStringFromParameter(idx);
+                    }
+                    catch
+                    {
+                        return "";
+                    }
+                }
+            }
+            public static string ByteArrayToString(byte[] ba)
+            {
+                StringBuilder hex = new StringBuilder(ba.Length * 2);
+                foreach (byte b in ba)
+                    hex.AppendFormat("{0:x2}", b);
+                return hex.ToString();
+            }
+            public string ExtraDataValue
+            {
+                get
+                {
+                    try
+                    {
+                        return "";
+                        //return ByteArrayToString(action.GetValueFromParameter(idx));
                     }
                     catch
                     {
@@ -89,16 +112,16 @@ namespace Diabolik_Lovers_STCM2L_Editor
         }
         private void DeleteTextClick(object sender, RoutedEventArgs e)
         {
-            foreach(classes.Action item in ActionsList.SelectedItems)
+            foreach(classes.ImmutableAction item in ActionsList.SelectedItems)
             {
                 file.Actions.Remove(item);
             }
         }
         private void SelectItem(object sender)
         {
-            var item = sender as classes.Action;
+            var item = sender as classes.ImmutableAction;
             var @params = new List<ParamValue>();
-            for (var i = 0; i < item.ParameterCount; i++)
+            for (var i = 0; i < item.Parameters.Count; i++)
             {
                 @params.Add(new ParamValue(i, item));
             }
@@ -107,11 +130,11 @@ namespace Diabolik_Lovers_STCM2L_Editor
             Address.DataContext = item;
             ParamCount.DataContext = item;
 
-            if (item.ExtraDataLength > 0)
+           /* if (item.ExtraDataLength > 0)
 
                 ExtraData.Text = utils.EncodingUtil.encoding.GetString(item.ExtraData).TrimEnd(new char[] { '\0' });
             else
-                ExtraData.Text = "";
+                ExtraData.Text = "";*/
         }
         private void TextsListItemClick(object sender, MouseButtonEventArgs e)
         {

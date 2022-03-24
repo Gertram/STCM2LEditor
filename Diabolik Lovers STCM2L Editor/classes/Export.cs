@@ -11,7 +11,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public string Name { get; set; }
         public UInt32 Address { get; set; }
         public UInt32 OldAddress { get; set; }
-        public Action ExportedAction { get; set; }
+        public IAction ExportedAction { get; set; }
 
         public byte[] Write() {
             List<byte> bytesExport = new List<byte>();

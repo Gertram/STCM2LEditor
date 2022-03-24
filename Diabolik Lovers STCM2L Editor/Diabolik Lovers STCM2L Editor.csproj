@@ -48,9 +48,13 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.14.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.6.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -95,19 +99,35 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ActionPlace.cs" />
     <Compile Include="ActionsVIew.xaml.cs">
       <DependentUpon>ActionsVIew.xaml</DependentUpon>
     </Compile>
     <Compile Include="classes\Global.cs" />
+    <Compile Include="classes\GlobalParameter.cs" />
+    <Compile Include="classes\IAction.cs" />
+    <Compile Include="classes\ActionHelpers.cs" />
+    <Compile Include="classes\IParameterData.cs" />
+    <Compile Include="classes\IParameter.cs" />
     <Compile Include="classes\Line.cs" />
+    <Compile Include="classes\LinkParameterData.cs" />
+    <Compile Include="classes\LocalParameter.cs" />
+    <Compile Include="classes\MutableAction.cs" />
+    <Compile Include="classes\ParameterData.cs" />
+    <Compile Include="classes\StringData.cs" />
+    <Compile Include="classes\TranslateData.cs" />
     <Compile Include="classes\TextEntity.cs" />
+    <Compile Include="classes\TranslateDataPromise.cs" />
     <Compile Include="FindDialog.xaml.cs">
       <DependentUpon>FindDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="classes\ImmutableParameter.cs" />
     <Compile Include="ImportWindow.xaml.cs">
       <DependentUpon>ImportWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NamesView.xaml.cs">
+      <DependentUpon>NamesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="NullTranslateData.cs" />
     <Compile Include="PlaceWindow.xaml.cs">
       <DependentUpon>PlaceWindow.xaml</DependentUpon>
     </Compile>
@@ -134,7 +154,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="classes\Action.cs" />
+    <Compile Include="classes\ImmutableAction.cs" />
     <Compile Include="classes\Export.cs" />
     <Compile Include="classes\Parameter.cs" />
     <Compile Include="classes\STCM2L.cs" />
@@ -142,6 +162,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="NamesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PlaceWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

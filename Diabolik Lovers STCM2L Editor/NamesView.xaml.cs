@@ -9,26 +9,33 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.ComponentModel;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.ComponentModel;
+
 using Diabolik_Lovers_STCM2L_Editor.classes;
 
 namespace Diabolik_Lovers_STCM2L_Editor
 {
+    class Name
+    {
+        public string OriginalName { get => Translate.OriginalText; }
+        public string TranslatedName { get => Translate.TranslatedText; set => Translate.TranslatedText = value; }
+        public TranslateData Translate { get; set; }
+    }
     /// <summary>
-    /// Логика взаимодействия для PlaceWindow.xaml
+    /// Логика взаимодействия для NamesView.xaml
     /// </summary>
-    public partial class PlaceWindow : Window,Findable
+    public partial class NamesView : Window, Findable
     {
         public bool find(string text)
         {
-            for (var i = 0; i < places.Count; i++)
+            for (var i = 0; i < names.Count; i++)
             {
-                var place = places[i];
-                if(place.OriginalName.Contains(text)||place.TranslatedName.Contains(text))
+                var place = names[i];
+                if (place.OriginalName.Contains(text) || place.TranslatedName.Contains(text))
                 {
-                    if (i + 10 < places.Count)
+                    if (i + 10 < names.Count)
                         TextsList.ScrollIntoView(TextsList.Items[i + 10]);
                     else
                         TextsList.ScrollIntoView(place);
@@ -39,32 +46,27 @@ namespace Diabolik_Lovers_STCM2L_Editor
             }
             return false;
         }
-        class Place
-        {
-            public string OriginalName { get => Translate.OriginalText; }
-            public string TranslatedName { get => Translate.TranslatedText; set=>Translate.TranslatedText = value; }
-            public TranslateData Translate { get; set; }
-        }
-        private BindingList<Place> places;
-        internal PlaceWindow(STCM2L file)
+        
+        private BindingList<Name> names;
+        internal NamesView(STCM2L file)
         {
             InitializeComponent();
-            this.places = new BindingList<Place>();
-            var places = new Dictionary<string,List<ActionOriginal>>();
+            this.names = new BindingList<Name>();
+            var names = new Dictionary<string, List<ActionOriginal>>();
             foreach (var action in file.MutableActions)
             {
-                if(action.OpCode == ActionHelpers.ACTION_PLACE)
+                if (action.OpCode == ActionHelpers.ACTION_NAME)
                 {
-                    var param = action.Parameters[3] as LocalParameter;
+                    var param = action.Parameters[0] as LocalParameter;
                     var data = new StringData(param.ParameterData);
                     param.ParameterData = data;
                     var text = data.Text;
-                    
-                    if (!places.TryGetValue(text, out List<ActionOriginal> list))
+
+                    if (!names.TryGetValue(text, out List<ActionOriginal> list))
                     {
 
                         list = new List<ActionOriginal>();
-                        places.Add(text, list);
+                        names.Add(text, list);
                         list.Add(new ActionOriginal { Action = action, Original = data });
                     }
                     if (file.Translates.All(x => x.TranslatedText != text))
@@ -74,33 +76,33 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 }
             }
             var size = file.Translates.Count;
-            foreach (var place in places)
+            foreach (var name in names)
             {
                 var found = false;
-                for(var i = 0;i < size;i++)
+                for (var i = 0; i < size; i++)
                 {
                     var translate = file.Translates[i];
-                    if (translate.OriginalText == place.Key)
+                    if (translate.OriginalText == name.Key)
                     {
                         found = true;
-                        this.places.Add(new Place { Translate = translate });
+                        this.names.Add(new Name { Translate = translate });
                         break;
                     }
                 }
                 if (!found)
                 {
-                    if(place.Value.Count == 0)
+                    if (name.Value.Count == 0)
                     {
                         Console.WriteLine("WTF");
                     }
-                    var translate = new TranslateData("", place.Value);
-                    this.places.Add(new Place { Translate=translate});
+                    var translate = new TranslateData("", name.Value);
+                    this.names.Add(new Name { Translate = translate });
                     file.Translates.Add(translate);
                 }
             }
-            
-            TextsList.DataContext = this.places;
-            TextsList.ItemsSource = this.places;
+
+            TextsList.DataContext = this.names;
+            TextsList.ItemsSource = this.names;
             TextsList.SelectionChanged += TextsList_SelectionChanged;
         }
 
@@ -108,12 +110,12 @@ namespace Diabolik_Lovers_STCM2L_Editor
         {
             if (ind < 0) return;
 
-            var place = places[ind];
+            var place = names[ind];
             NameBox1.DataContext = place;
             NameBox2.DataContext = place;
-            if(places[ind].TranslatedName == "" && (bool)Autotranslate.IsChecked)
+            if (names[ind].TranslatedName == "" && (bool)Autotranslate.IsChecked)
             {
-                NameBox2.Text = ClassTranslator.TranslateText(places[ind].OriginalName);
+                NameBox2.Text = ClassTranslator.TranslateText(names[ind].OriginalName);
                 NameBox2.Text = NameBox2.Text.Substring(0, 1).ToUpper() + NameBox2.Text.Substring(1);
             }
             LinesList.ItemsSource = place.Translate.Actions;
@@ -126,7 +128,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-           
+
         }
 
         private void FindCommand(object sender, ExecutedRoutedEventArgs e)

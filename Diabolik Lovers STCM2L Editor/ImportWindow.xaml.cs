@@ -34,8 +34,8 @@ namespace Diabolik_Lovers_STCM2L_Editor
         {
             InitializeComponent();
             stcm2l = file;
-            TextsList1.ItemsSource = file.Texts;
-            TextsList1.DataContext = file.Texts;
+            //TextsList1.ItemsSource = file.Texts;
+            //TextsList1.DataContext = file.Texts;
         }
 
         private void OpenFileCommad(object sender, ExecutedRoutedEventArgs e)
@@ -148,7 +148,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 {
                     return;
                 }
-            }
+            }/*
             var fragments = stcm2l.Texts;
             for(var i = 0;i < fragments.Count; i++)
             {
@@ -184,7 +184,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 {
                     return;
                 }
-            }
+            }*/
         }
 
         private void AddNewLineClick(object sender, RoutedEventArgs e)
@@ -213,13 +213,13 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void InsertLine(int index = -1)
         {
-            (LinesList2.DataContext as TextEntity).AddLine(false, index);
+            //(LinesList2.DataContext as TextEntity).AddLine(false, index);
         }
 
         private void DeleteLineClick(object sender, RoutedEventArgs e)
         {
-            int index = LinesList2.SelectedIndex;
-            ((sender as MenuItem).DataContext as TextEntity).DeleteLine(index);
+            /*int index = LinesList2.SelectedIndex;
+            ((sender as MenuItem).DataContext as TextEntity).DeleteLine(index);*/
         }
 
         private void DeleteTextClick(object sender, RoutedEventArgs e)

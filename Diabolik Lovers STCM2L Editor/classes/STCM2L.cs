@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -17,29 +18,29 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public string FilePath { get; set; }
         public byte[] OriginalFile { get; set; }
         public List<byte> NewFile { get; set; }
-
-        public UInt32 StartPosition { get; set; }
+        public int StartPosition { get; set; }
         public byte[] StartData { get; set; }
 
-        public UInt32 ExportsPosition { get; set; }
-        public UInt32 ExportsCount { get; set; }
+        public int ExportsPosition { get; set; }
+        public int ExportsCount { get; set; }
         public List<Export> Exports { get; set; }
 
-        public UInt32 CollectionLinkPosition { get; set; }
-        public UInt32 CollectionLinkOldAddress { get; set; }
+        public int CollectionLinkPosition { get; set; }
+        public int CollectionLinkOldAddress { get; set; }
 
-        public List<Action> Actions { get; set; }
+        public List<IAction> Actions { get; set; }
 
-        public ObservableCollection<TextEntity> Texts { get; set; }
+        public List<MutableAction> MutableActions => Actions.Where(x => x is MutableAction).Select(x => x as MutableAction).ToList();
 
+        public ObservableCollection<TranslateData> Translates { get; private set; }
         public STCM2L (string filePath) {
             FilePath = filePath;
             Exports = new List<Export>();
-            Actions = new List<Action>();
-            Texts = new ObservableCollection<TextEntity>();
+            Actions = new List<IAction>();
             NewFile = new List<byte>();
+            Translates = new ObservableCollection<TranslateData>();
         }
-
+        
         public bool Load() {
             try {
                 OriginalFile = File.ReadAllBytes(FilePath);
@@ -56,7 +57,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 ReadExports();
                 ReadActions();
 
-                MakeEntities();
+                ReadTranslates();
+
+                //MakeEntities();
 
                 return true;
             }
@@ -68,18 +71,28 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 return false;
             }
         }
-
+        
+        public int FileSize()
+        {
+            int newExportsAddress = StartPosition + GetActionsLength() + 12;
+            int newCollectionLinkAddress = newExportsAddress + ExportsCount * EXPORT_SIZE + 16;
+            return newCollectionLinkAddress + 64;
+        }
         public bool Save(string filePath) {
+            NewFile.Clear();
             try {
-                foreach(TextEntity text in Texts) {
+               /* foreach(TextEntity text in Texts) {
                     text.ReinsertLines();
-                }
+                }*/
 
-                UInt32 newExportsAddress = StartPosition + GetActionsLength() + 12; // + EXPORT_DATA.Length
-                UInt32 newCollectionLinkAddress = newExportsAddress + ExportsCount * EXPORT_SIZE + 16; // + COLLECTION_LINK.length
 
-                StartData = ByteUtil.InsertUint32(StartData, newExportsAddress, HEADER_OFFSET);
-                StartData = ByteUtil.InsertUint32(StartData, newCollectionLinkAddress, HEADER_OFFSET + 3 * 4);
+                int newExportsAddress = StartPosition + GetActionsLength() + 12; // + EXPORT_DATA.Length
+                int newCollectionLinkAddress = newExportsAddress + ExportsCount * EXPORT_SIZE + 16; // + COLLECTION_LINK.length
+                var extraDataAddress = newCollectionLinkAddress + 64;
+                SetAddresses(extraDataAddress);
+
+                StartData = ByteUtil.InsertInt32(StartData, newExportsAddress, HEADER_OFFSET);
+                StartData = ByteUtil.InsertInt32(StartData, newCollectionLinkAddress, HEADER_OFFSET + 3 * 4);
 
                 NewFile.AddRange(StartData);
 
@@ -99,19 +112,27 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         }
 
         private void WriteActions() {
-            SetAddresses();
             
-            foreach(Action action in Actions) {
+            foreach(var action in Actions) {
                 NewFile.AddRange(action.Write());
             }
         }
 
-        private void SetAddresses() {
-            UInt32 address = StartPosition;
+        private void SetAddresses(int extraDataAddress) {
+            int address = StartPosition;
 
-            foreach(Action action in Actions) {
+            foreach(var action in Actions) {
                 action.Address = address;
                 address += action.Length;
+            }
+
+            foreach(var translate in Translates)
+            {
+                if (translate.TranslatedText != null && translate.TranslatedText.Trim() != "")
+                {
+                    extraDataAddress = translate.SetAddress(extraDataAddress);
+                    translate.InsertTranslate();
+                }
             }
         }
 
@@ -129,17 +150,31 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             NewFile.Add(new byte());
             NewFile.AddRange(BitConverter.GetBytes(0));
 
-            UInt32 newCollectionLinkAddress = (UInt32) NewFile.Count + 4 + COLLECTION_LINK_PADDING;
+            var extra = new List<byte[]>();
+            foreach (var translate in Translates)
+            {
+                if (translate.TranslatedText != null && translate.TranslatedText.Trim() != "")
+                {
+                    extra.Add(translate.Write());
+                }
+            }
+
+            var sum = (uint)extra.Sum(x => x.Length);
+
+            UInt32 newCollectionLinkAddress = (UInt32) NewFile.Count + 4 + COLLECTION_LINK_PADDING+sum;
 
             NewFile.AddRange(BitConverter.GetBytes(newCollectionLinkAddress));
             NewFile.AddRange(new byte[COLLECTION_LINK_PADDING]);
-
+            foreach(var data in extra)
+            {
+                NewFile.AddRange(data);
+            }
         }
 
-        private UInt32 GetActionsLength() {
-            UInt32 length = 0;
+        private int GetActionsLength() {
+            int length = 0;
 
-            foreach(Action action in Actions) {
+            foreach(var action in Actions) {
                 length += action.Length;
             }
 
@@ -148,16 +183,16 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
         private void ReadStartData () {
             int seek = 0;
-            StartData = ByteUtil.ReadBytes(OriginalFile, StartPosition, ref seek);
+            StartData = ByteUtil.ReadBytesRef(OriginalFile, StartPosition, ref seek);
 
             seek = HEADER_OFFSET;
-            ExportsPosition = ByteUtil.ReadUInt32(StartData, ref seek);
+            ExportsPosition = ByteUtil.ReadInt32Ref(StartData, ref seek);
 
             seek += 2 * 4;
-            CollectionLinkPosition = ByteUtil.ReadUInt32(StartData, ref seek);
+            CollectionLinkPosition = ByteUtil.ReadInt32Ref(StartData, ref seek);
         }
 
-        private UInt32 FindStart() {
+        private int FindStart() {
             byte[] start = EncodingUtil.encoding.GetBytes("CODE_START_");
 
             for (int i = 0; i < 2000; i++) {
@@ -167,7 +202,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                             break;
                         }
                         else if (j + 1 == start.Length) {
-                            return (UInt32) i + 0x0c;
+                            return  i + 0x0c;
                         }
                     }
                 }
@@ -178,11 +213,11 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
         private void ReadCollectionLink() {
             int seek = (int)CollectionLinkPosition + 4;
-            CollectionLinkOldAddress = ByteUtil.ReadUInt32(OriginalFile, ref seek);
+            CollectionLinkOldAddress = ByteUtil.ReadInt32(OriginalFile, seek);
         }
 
         private void ReadExports () {
-            UInt32 exportsLength = CollectionLinkPosition - ExportsPosition;
+            int exportsLength = CollectionLinkPosition - ExportsPosition;
             ExportsCount = exportsLength / EXPORT_SIZE;
 
             int seek = (int)ExportsPosition;
@@ -192,21 +227,48 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                 seek += 4;
 
-                export.Name = EncodingUtil.encoding.GetString(ByteUtil.ReadBytes(OriginalFile, 32, ref seek));
-                export.OldAddress = ByteUtil.ReadUInt32(OriginalFile, ref seek);
+                export.Name = EncodingUtil.encoding.GetString(ByteUtil.ReadBytesRef(OriginalFile, 32, ref seek));
+                export.OldAddress = ByteUtil.ReadUInt32Ref(OriginalFile, ref seek);
 
                 Exports.Add(export);
             }
         }
-
+        private void ReadTranslates()
+        {
+            var seek = (int)(CollectionLinkPosition + 64);
+            var mutableActions = MutableActions;
+            Translates = new ObservableCollection<TranslateData>();
+            while(seek != CollectionLinkOldAddress)
+            {
+                Translates.Add(new TranslateData(OriginalFile,mutableActions,ref seek));
+            }
+            foreach(var translate in Translates)
+            {
+                foreach(var item in translate.Actions)
+                {
+                    if (item.Action.OpCode == ActionHelpers.ACTION_PLACE) {
+                        (item.Action.Parameters[3] as LocalParameter).ParameterData = item.Original;
+                    }
+                    else if (item.Action.OpCode == ActionHelpers.ACTION_NAME || item.Action.OpCode == ActionHelpers.ACTION_TEXT) {
+                        (item.Action.Parameters[0] as LocalParameter).ParameterData = item.Original;
+                    }
+                }
+            }
+        }
+        private bool IsMutableAction(IAction action)
+        {
+            return action.OpCode == ActionHelpers.ACTION_PLACE
+                || action.OpCode == ActionHelpers.ACTION_NAME
+                || action.OpCode == ActionHelpers.ACTION_TEXT;
+        }
         private void ReadActions () {
-            UInt32 currentAddress = StartPosition;
-            UInt32 maxAddress = ExportsPosition - 12; // Before EXPORT_DATA
+            int currentAddress = StartPosition;
+            int maxAddress = ExportsPosition - 12; // Before EXPORT_DATA
             int currentExport = 0;
             int i = 0;
 
             do {
-                Action action = new Action();
+                var action = new ImmutableAction();
                 i++;
 
                 action.ReadFromFile(currentAddress, OriginalFile);
@@ -217,12 +279,23 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 }
 
                 currentAddress += action.Length;
-                
-                Actions.Add(action);
+
+                if (IsMutableAction(action))
+                {
+                    var mut = new MutableAction(action);
+                    if(mut.Length != action.Length)
+                    {
+                        throw new Exception();
+                    }
+                    Actions.Add(mut);
+                }
+                else {
+                    Actions.Add(action);
+                }
             }
             while (currentAddress < maxAddress);
 
-            RecoverGlobalCalls(StartPosition);
+            RecoverGlobalCalls();
 
             /* foreach(var action in Actions)
              {
@@ -250,15 +323,14 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 #endif
         }
 
-        private void RecoverGlobalCalls (UInt32 startAddress) {
-            UInt32 currentAddress = startAddress;
+        private void RecoverGlobalCalls () {
 
-            foreach(Action action in Actions) {
-                if (Global.Calls.ContainsKey(currentAddress))
+            foreach(var action in Actions) {
+                if (Global.Calls.ContainsKey((uint)action.Address))
                 {
-                    List<Parameter> list = Global.Calls[currentAddress];
+                    var list = Global.Calls[(uint)action.Address];
 
-                    foreach (Parameter parameter in list)
+                    foreach (var parameter in list)
                     {
                         parameter.GlobalPointer = action;
                     }
@@ -273,14 +345,13 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                         catch { }
                     }*/
                 }
-                currentAddress += action.Length;
             }
         }
-
+/*
         private void MakeEntities() {
             for (int i = 0; i < Actions.Count; i++) { 
                 if (
-                    (Actions[i].OpCode == Action.ACTION_NAME || Actions[i].OpCode == Action.ACTION_TEXT || Actions[i].OpCode == Action.ACTION_PLACE) &&
+                    (Actions[i].OpCode == GeneralAction.ACTION_NAME || Actions[i].OpCode == GeneralAction.ACTION_TEXT || Actions[i].OpCode == GeneralAction.ACTION_PLACE) &&
                     Actions[i].ExtraDataLength > 0
                 ) {
                     TextEntity textEntity = new TextEntity();
@@ -288,7 +359,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                     Texts.Add(textEntity);
                 }
-                else if (Actions[i].OpCode == Action.ACTION_CHOICE) {
+                else if (Actions[i].OpCode == GeneralAction.ACTION_CHOICE) {
                     TextEntity textEntity = new TextEntity();
                     textEntity.SetAnswer(ref i, Actions);
                     Texts.Add(textEntity);
@@ -297,36 +368,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 #if DEBUG
             Console.WriteLine("Read {0} texts.", Texts.Count);
 #endif
-        }
+        }*/
 
-        public void InsertText (int index, bool before, bool newPage) {
-            string name = null;
-
-            if (Texts[index].Name != null) {
-                name = Texts[index].Name.LineText;
-            }
-
-            int actionsEnd;
-
-            if(before) {
-                actionsEnd = Texts[index].ActionsEnd - Texts[index].Lines.Count - (name != null ? 1 : 0);
-            }
-            else {
-                actionsEnd = Texts[index].ActionsEnd;
-            }
-
-            TextEntity text = new TextEntity(Actions, actionsEnd, name, newPage, before);
-            
-            if (before) {
-                Texts.Insert(index, text);
-                AddLine(index, text.AmountInserted);
-            }
-            else {
-                Texts.Insert(index + 1, text);
-                AddLine(index + 1, text.AmountInserted);
-            }
-        }
-
+/*
         public void DeleteText(int index) {
             Texts[index].DeleteText();
             DeleteLine(index, Texts[index].AmountInserted);
@@ -343,7 +387,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             for(int i = index; i < Texts.Count; i++) {
                 Texts[i].ActionsEnd -= amount;
             }
-        }
+        }*/
 
     }
 }

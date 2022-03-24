@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 namespace Diabolik_Lovers_STCM2L_Editor.classes {
     class TextEntity {
         public Line Name { get; set; }
-        public Action NameAction { get; set; }
+        public ImmutableAction NameAction { get; set; }
 
         public ObservableCollection<Line> Lines { get; set; }
-        public List<Action> LineActions { get; set; }
-        public List<Action> PlaceActions { get; set; }
+        public List<ImmutableAction> LineActions { get; set; }
+        public List<ImmutableAction> PlaceActions { get; set; }
 
         public UInt32 OldAddress { get; set; }
 
-        public List<Action> Actions { get; set; }
+        public List<ImmutableAction> Actions { get; set; }
         public int ActionsEnd { get; set; }
 
         public bool IsAnswer { get; set; }
@@ -27,62 +27,62 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public TextEntity() {
             Name = null;
             Lines = new ObservableCollection<Line>();
-            LineActions = new List<Action>();
-            PlaceActions = new List<Action>();
+            LineActions = new List<ImmutableAction>();
+            PlaceActions = new List<ImmutableAction>();
             AmountInserted = 0;
         }
-
-        public TextEntity(List<Action> actions, int actionsEnd, string name, bool newPage, bool before) {
+/*
+        public TextEntity(List<ImmutableAction> actions, int actionsEnd, string name, bool newPage, bool before) {
             Actions = actions;
             ActionsEnd = actionsEnd;
             AmountInserted = 0;
 
-            Actions.Insert(ActionsEnd, new Action(0, Action.ACTION_DIVIDER, 0));
+            Actions.Insert(ActionsEnd, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
             AmountInserted++;
 
             if (name != null) {
                 Name = new Line(name);
-                NameAction = new Action(0, Action.ACTION_NAME, 1);
+                NameAction = new MutableAction(0, ActionHelpers.ACTION_NAME, 1);
                 Actions.Insert(ActionsEnd + AmountInserted, NameAction);
                 AmountInserted++;
             }
             else {
                 if (newPage) {
-                    Actions.Insert(ActionsEnd + AmountInserted, new Action(0, Action.ACTION_NEW_PAGE, 0));
+                    Actions.Insert(ActionsEnd + AmountInserted, new MutableAction(0, ActionHelpers.ACTION_NEW_PAGE, 0));
                     AmountInserted++;
                 }
 
-                Actions.Insert(ActionsEnd + AmountInserted, new Action(0, Action.ACTION_DIVIDER, 0));
+                Actions.Insert(ActionsEnd + AmountInserted, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
                 AmountInserted++;
             }
 
             Lines = new ObservableCollection<Line>();
-            LineActions = new List<Action>();
-            PlaceActions = new List<Action>();
+            LineActions = new List<ImmutableAction>();
+            PlaceActions = new List<ImmutableAction>();
             AddLine(true);
 
             if (before) {
-                Actions.Insert(ActionsEnd + AmountInserted, new Action(0, Action.ACTION_DIVIDER, 0));
+                Actions.Insert(ActionsEnd + AmountInserted, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
                 AmountInserted++;
             }
 
             IsAnswer = false;
             IsHighlighted = false;
-        }
-
-        public void SetConversation(ref int i, List<Action> actions) {
+        }*/
+/*
+        public void SetConversation(ref int i, List<GeneralAction> actions) {
             Actions = actions;
 
             UInt32 opCode = actions[i].OpCode;
             OldAddress = actions[i].OldAddress;
 
-            while (opCode == Action.ACTION_NAME || opCode == Action.ACTION_TEXT || opCode == Action.ACTION_PLACE) {
-                if (opCode == Action.ACTION_NAME) {
+            while (opCode == GeneralAction.ACTION_NAME || opCode == GeneralAction.ACTION_TEXT || opCode == GeneralAction.ACTION_PLACE) {
+                if (opCode == GeneralAction.ACTION_NAME) {
                     if (Name == null) {
                         Name = new Line(actions[i].GetStringFromParameter(0));
                         NameAction = actions[i];
                     }
-                }/*
+                }*//*
                 else if (opCode == Action.ACTION_PLACE)
                 {
                     string temp = actions[i].GetStringFromParameter(3);
@@ -91,8 +91,8 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                     Lines.Add(line);
                     PlaceActions.Add(actions[i]);
-                }*/
-                else if(opCode == Action.ACTION_TEXT){
+                }*//*
+                else if(opCode == GeneralAction.ACTION_TEXT){
                     string temp = actions[i].GetStringFromParameter(0);
 
                     Line line = new Line(temp);
@@ -112,14 +112,14 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             i--;
         }
 
-        public void SetAnswer(ref int i, List<Action> actions) {
+        public void SetAnswer(ref int i, List<GeneralAction> actions) {
             string temp = actions[i].GetStringFromParameter(0);
             Line line = new Line(temp);
 
             Lines.Add(line);
             LineActions.Add(actions[i]);
             IsAnswer = true;
-        }
+        }*/
 
         public void ResetText() {
             ResetName();
@@ -134,7 +134,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 Name.Reset();
             }
         }
-
+/*
         public void ReinsertLines () {
             if(Name != null) {
                 NameAction.SetString(Name.LineText, 0);
@@ -150,11 +150,11 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                     LineActions[i].SetString(Lines[i].LineText, 0);
                 }
             }
-        }
-
+        }*/
+/*
         public void AddLine(bool isNew = false, int index = -1) {
             if (!IsAnswer && ((NameAction == null && Lines.Count < 10 )|| Lines.Count < 3)) {
-                Action action = new Action(0, Action.ACTION_TEXT, 1);
+                var action = new MutableAction(0, ActionHelpers.ACTION_TEXT, 1);
                 Line line = new Line("");
 
                 if(index == -1 || index == Lines.Count) {
@@ -170,8 +170,8 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                 AmountInserted++;
             }
-        }
-
+        }*/
+/*
         public void DeleteLine(int index) {
             Lines.Remove(Lines[index]);
             Actions.Remove(LineActions[index]);
@@ -182,6 +182,6 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             for(int i = 1; i <= AmountInserted; i++) {
                 Actions.Remove(Actions[ActionsEnd - i]);
             }
-        }
+        }*/
     }
 }
