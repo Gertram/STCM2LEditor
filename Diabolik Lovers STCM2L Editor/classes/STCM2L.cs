@@ -8,9 +8,10 @@ using System.Text;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.ComponentModel;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes {
-    class STCM2L {
+    public class STCM2L {
         public const int HEADER_OFFSET = 0x20;
         public const int EXPORT_SIZE = 0x28;
         public const int COLLECTION_LINK_PADDING = 0x38;
@@ -28,15 +29,15 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         public int CollectionLinkPosition { get; set; }
         public int CollectionLinkOldAddress { get; set; }
 
-        public List<IAction> Actions { get; set; }
+        public BindingList<IAction> Actions { get; set; }
 
-        public List<MutableAction> MutableActions => Actions.Where(x => x is MutableAction).Select(x => x as MutableAction).ToList();
+        public List<DefaultAction> DefaultActions => Actions.Where(x => x is DefaultAction).Select(x => x as DefaultAction).ToList();
 
         public ObservableCollection<TranslateData> Translates { get; private set; }
         public STCM2L (string filePath) {
             FilePath = filePath;
             Exports = new List<Export>();
-            Actions = new List<IAction>();
+            Actions = new BindingList<IAction>();
             NewFile = new List<byte>();
             Translates = new ObservableCollection<TranslateData>();
         }
@@ -54,10 +55,12 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                 ReadStartData();
                 ReadCollectionLink();
+
                 ReadExports();
-                ReadActions();
 
                 ReadTranslates();
+                ReadActions();
+
 
                 //MakeEntities();
 
@@ -80,17 +83,15 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         }
         public bool Save(string filePath) {
             NewFile.Clear();
-            try {
-               /* foreach(TextEntity text in Texts) {
-                    text.ReinsertLines();
-                }*/
-
+                /* foreach(TextEntity text in Texts) {
+                     text.ReinsertLines();
+                 }*/
 
                 int newExportsAddress = StartPosition + GetActionsLength() + 12; // + EXPORT_DATA.Length
                 int newCollectionLinkAddress = newExportsAddress + ExportsCount * EXPORT_SIZE + 16; // + COLLECTION_LINK.length
                 var extraDataAddress = newCollectionLinkAddress + 64;
                 SetAddresses(extraDataAddress);
-
+                GlobalStatus.Inserting = true;
                 StartData = ByteUtil.InsertInt32(StartData, newExportsAddress, HEADER_OFFSET);
                 StartData = ByteUtil.InsertInt32(StartData, newCollectionLinkAddress, HEADER_OFFSET + 3 * 4);
 
@@ -100,15 +101,18 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                 WriteExports();
                 WriteCollectionLink();
 
+                GlobalStatus.Inserting = false;
+/*
+                for (int i = 0; i < OriginalFile.Length; i++)
+                {
+                    if (OriginalFile[i] != NewFile[i])
+                    {
+                        throw new Exception();
+                    }
+                }*/
+
                 File.WriteAllBytes(filePath, NewFile.ToArray());
                 return true;
-            }
-            catch (Exception e) {
-#if DEBUG
-                Console.WriteLine(e);
-#endif
-                return false;
-            }
         }
 
         private void WriteActions() {
@@ -121,17 +125,17 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         private void SetAddresses(int extraDataAddress) {
             int address = StartPosition;
 
-            foreach(var action in Actions) {
+
+            foreach (var action in Actions) {
                 action.Address = address;
                 address += action.Length;
             }
 
-            foreach(var translate in Translates)
+            foreach (var translate in Translates)
             {
                 if (translate.TranslatedText != null && translate.TranslatedText.Trim() != "")
                 {
                     extraDataAddress = translate.SetAddress(extraDataAddress);
-                    translate.InsertTranslate();
                 }
             }
         }
@@ -236,13 +240,12 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
         private void ReadTranslates()
         {
             var seek = (int)(CollectionLinkPosition + 64);
-            var mutableActions = MutableActions;
             Translates = new ObservableCollection<TranslateData>();
             while(seek != CollectionLinkOldAddress)
             {
-                Translates.Add(new TranslateData(OriginalFile,mutableActions,ref seek));
+                Translates.Add(new TranslateData(OriginalFile,ref seek));
             }
-            foreach(var translate in Translates)
+            /*foreach(var translate in Translates)
             {
                 foreach(var item in translate.Actions)
                 {
@@ -253,9 +256,9 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
                         (item.Action.Parameters[0] as LocalParameter).ParameterData = item.Original;
                     }
                 }
-            }
+            }*/
         }
-        private bool IsMutableAction(IAction action)
+        private bool IsDefaultAction(IAction action)
         {
             return action.OpCode == ActionHelpers.ACTION_PLACE
                 || action.OpCode == ActionHelpers.ACTION_NAME
@@ -268,10 +271,25 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
             int i = 0;
 
             do {
-                var action = new ImmutableAction();
+                var action = new DefaultAction();
                 i++;
-
-                action.ReadFromFile(currentAddress, OriginalFile);
+                var founded = false;
+                foreach(var translate in Translates){
+                    foreach(var actionExp in translate.ActionsExport)
+                    {
+                        if(actionExp.Key == currentAddress)
+                        {
+                            founded = true;
+                            var proxy = new ProxyData(actionExp.Value, translate.Data);
+                            action.ReadFromFile(currentAddress, OriginalFile,proxy);
+                            translate.Actions.Add(new ActionProxy { Action = action, Proxy = proxy});
+                        }
+                    }
+                }
+                if (!founded)
+                {
+                    action.ReadFromFile(currentAddress, OriginalFile);
+                }
 
                 if(currentExport < Exports.Count && Exports[currentExport].OldAddress == currentAddress) {
                     Exports[currentExport].ExportedAction = action;
@@ -280,49 +298,36 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes {
 
                 currentAddress += action.Length;
 
-                if (IsMutableAction(action))
-                {
-                    var mut = new MutableAction(action);
-                    if(mut.Length != action.Length)
-                    {
-                        throw new Exception();
-                    }
-                    Actions.Add(mut);
-                }
-                else {
-                    Actions.Add(action);
-                }
+                 Actions.Add(action);
             }
             while (currentAddress < maxAddress);
 
+            foreach(var translate in Translates)
+            {
+                foreach (var export in translate.ActionsExport)
+                {
+                    bool founded = false;
+                    foreach(var action in translate.Actions)
+                    {
+                        if(action.Action.Address == export.Key)
+                        {
+                            founded = true;
+                            break;
+                        }
+                    }
+                    if (!founded)
+                    {
+                        throw new Exception("Не все действия были найдены");
+                    }
+                }
+                translate.ActionsExport = null;
+            }
             RecoverGlobalCalls();
-
-            /* foreach(var action in Actions)
-             {
-                 switch (action.OpCode)
-                 {
-                     case Action.ACTION_NAME:
-
-                         Console.WriteLine($"Name {action.GetStringFromParameter(0)}");
-                         break;
-                     case Action.ACTION_PLACE:
-                         Console.WriteLine($"Place {action.GetStringFromParameter(3)}");
-                         break;
-                     case Action.ACTION_TEXT:
-                         Console.WriteLine($"Text {action.GetStringFromParameter(0)}");
-                         break;
-                     default: 
-                         Console.WriteLine($"Unknown({action.OpCode})");
-                         break;
-
-                 }
-             }*/
-
 #if DEBUG
             Console.WriteLine("Found {0} actions.", Actions.Count);
 #endif
         }
-
+        
         private void RecoverGlobalCalls () {
 
             foreach(var action in Actions) {

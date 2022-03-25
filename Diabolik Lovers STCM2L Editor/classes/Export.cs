@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Diabolik_Lovers_STCM2L_Editor.utils;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes {
-    class Export {
+    public class Export {
         public string Name { get; set; }
         public UInt32 Address { get; set; }
         public UInt32 OldAddress { get; set; }

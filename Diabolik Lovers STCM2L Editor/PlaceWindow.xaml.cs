@@ -50,8 +50,8 @@ namespace Diabolik_Lovers_STCM2L_Editor
         {
             InitializeComponent();
             this.places = new BindingList<Place>();
-            var places = new Dictionary<string,List<ActionOriginal>>();
-            foreach (var action in file.MutableActions)
+            var places = new Dictionary<string,List<ActionProxy>>();
+            foreach (var action in file.DefaultActions)
             {
                 if(action.OpCode == ActionHelpers.ACTION_PLACE)
                 {
@@ -60,16 +60,16 @@ namespace Diabolik_Lovers_STCM2L_Editor
                     param.ParameterData = data;
                     var text = data.Text;
                     
-                    if (!places.TryGetValue(text, out List<ActionOriginal> list))
+                    if (!places.TryGetValue(text, out List<ActionProxy> list))
                     {
 
-                        list = new List<ActionOriginal>();
+                        list = new List<ActionProxy>();
                         places.Add(text, list);
-                        list.Add(new ActionOriginal { Action = action, Original = data });
+                        //list.Add(new ActionOriginal { Action = action, Original = data });
                     }
                     if (file.Translates.All(x => x.TranslatedText != text))
                     {
-                        list.Add(new ActionOriginal { Action = action, Original = data });
+                        //list.Add(new ActionOriginal { Action = action, Original = data });
                     }
                 }
             }
@@ -93,9 +93,9 @@ namespace Diabolik_Lovers_STCM2L_Editor
                     {
                         Console.WriteLine("WTF");
                     }
-                    var translate = new TranslateData("", place.Value);
+                    /*var translate = new TranslateData("", place.Value);
                     this.places.Add(new Place { Translate=translate});
-                    file.Translates.Add(translate);
+                    file.Translates.Add(translate);*/
                 }
             }
             

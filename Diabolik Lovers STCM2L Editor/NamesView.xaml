@@ -28,8 +28,8 @@
                                     <ColumnDefinition></ColumnDefinition>
                                     <ColumnDefinition></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" DockPanel.Dock="Right" Text="{Binding OriginalName}"/>
-                                <TextBlock Grid.Column="1" DockPanel.Dock="Right" Text="{Binding TranslatedName}"/>
+                                <TextBlock Grid.Column="0" DockPanel.Dock="Right" Text="{Binding OriginalText}"/>
+                                <TextBlock Grid.Column="1" DockPanel.Dock="Right" Text="{Binding TranslatedText}"/>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -58,7 +58,7 @@
                     <TextBox 
                         Grid.Column="1"
                         Name="NameBox1" 
-                        Text="{Binding Path=OriginalName, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                         IsReadOnly="True"
                         MaxLength="12"
                         VerticalAlignment="Center"
@@ -73,7 +73,7 @@
                     <TextBox 
                         Grid.Column="3"
                         Name="NameBox2" 
-                        Text="{Binding Path=TranslatedName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Text="{Binding Path=TranslatedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         TextChanged="NameBox2_TextChanged"
                         MaxLength="20"
                         VerticalAlignment="Center"
@@ -84,12 +84,24 @@
                 <ListView Grid.Row="1" Name="LinesList">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock 
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="100"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
                                 Text="{Binding Mode=OneWay, Path=Action.Address, StringFormat={}{0:X}}"
                                 DockPanel.Dock="Left" 
                                 MinWidth="100px" 
                                 HorizontalAlignment="Left"
                             />
+                                <CheckBox
+                                    Margin="10,0,0,10" 
+                                    Grid.Column="1" 
+                                    Content="No insert" 
+                                    IsChecked="{Binding Mode=TwoWay, Path=Proxy.NoInsertTranslate}"
+                                    />
+                            </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

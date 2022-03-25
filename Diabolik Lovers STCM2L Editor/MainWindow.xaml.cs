@@ -12,7 +12,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.IO;
 using System.ComponentModel;
 using System.Configuration;
@@ -22,33 +21,10 @@ using MahApps.Metro.Controls;
 
 namespace Diabolik_Lovers_STCM2L_Editor
 {
-    class TextTranslate
-    {
-        public TranslateData Name { get; set; } = new NullTranslateData();
-        public BindingList<TranslateData> Lines { get; set; } = new BindingList<TranslateData>();
-    }
-    public class WindowCommands
-    {
-        static WindowCommands()
-        {
-            ImportFrom = new RoutedCommand("ImportFrom", typeof(MainWindow));
-            ImportText = new RoutedCommand("ImportText", typeof(MainWindow));
-            ActionsView = new RoutedCommand("ActionsView", typeof(MainWindow));
-            PlaceView = new RoutedCommand("PlaceView", typeof(MainWindow));
-            NameView = new RoutedCommand("NameView", typeof(MainWindow));
-            Find = new RoutedCommand("Find", typeof(MainWindow));
-        }
-        public static RoutedCommand ImportFrom { get; set; }
-        public static RoutedCommand ImportText { get; set; }
-        public static RoutedCommand ActionsView { get; set; }
-        public static RoutedCommand PlaceView { get; set; }
-        public static RoutedCommand NameView { get; set; }
-        public static RoutedCommand Find { get; set; }
-    }
     public partial class MainWindow : MetroWindow
     {
-        private BindingList<TextTranslate> translates;
-        private STCM2L Stcm2l;
+        internal BindingList<TextTranslate> Translates { get; set; }
+        internal STCM2L Stcm2l { get; set; }
         private bool ShouldSave = false;
 
         public MainWindow()
@@ -65,6 +41,25 @@ namespace Diabolik_Lovers_STCM2L_Editor
             {
 
             }
+        }
+        internal void DeleteText(int index)
+        {
+            var translate = Translates[index];
+            translate.DeleteFrom(Stcm2l);
+            Translates.RemoveAt(index);
+        }
+        internal void InsertText(int index,bool before)
+        {
+            var translate = Translates[index];
+            if (before)
+            {
+                Translates.Insert(index,translate.Insert(Stcm2l,before));
+            }
+            else
+            {
+                Translates.Insert(index+1,translate.Insert(Stcm2l,before));
+            }
+            ShouldSave = true;
         }
         static void AddUpdateAppSettings(string key, string value)
         {
@@ -126,7 +121,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 return;
             }
             var view = new ActionsView(Stcm2l);
-            view.ShowDialog();
+            view.Show();
         }
         private void PlaceWindowCommand(object sender, ExecutedRoutedEventArgs e)
         {
@@ -134,83 +129,15 @@ namespace Diabolik_Lovers_STCM2L_Editor
             var win = new PlaceWindow(Stcm2l);
             win.ShowDialog();
         }
-        private void ImportTextCommand(object sender, ExecutedRoutedEventArgs e)
-        {
-
-        }
         private void ImportFromCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            /*try
-            {
-                if (Stcm2l == null)
-                {
-                    MessageBox.Show("Не загружен файл скрипта");
-                    return;
-                }
-                var ofd = new OpenFileDialog();
-                ofd.Filter = "XML Files (*.xml)|*.xml";
-                if ((bool)!ofd.ShowDialog())
-                {
-                    return;
-                }
-                var doc = XDocument.Load(ofd.FileName);
-                var root = doc.Root;
-                if (root.Name.LocalName.ToUpper() != "SCRIPT")
-                {
-                    MessageBox.Show("Не был найден корневой элемент \"script\"");
-                    return;
-                }
-                var fragment_num = 0;
-                var fragments = root.Elements("fragment");
-                if (fragments.Count() == 0)
-                {
-                    MessageBox.Show("Необнаружена ни одна строка");
-                    return;
-                }
-                if (fragments.Count() != Stcm2l.Texts.Count)
-                {
-                    MessageBox.Show($"Количество фрагментов не соответсвует исходному\nИсходный {Stcm2l.Texts.Count}\nИмпортируемый {fragments.Count()}");
-                    return;
-                }
-                foreach (var fragment in fragments)
-                {
-                    var line_num = 0;
-                    var lines = fragment.Elements("line");
-                    var text = Stcm2l.Texts[fragment_num];
-
-                    if (text.Lines.Count() > lines.Count())
-                    {
-                        for (int i = text.Lines.Count() - 1; i > lines.Count() - 1; i--)
-                        {
-                            text.DeleteLine(i);
-                        }
-                    }
-                    else if (text.Lines.Count() < lines.Count())
-                    {
-                        for (int i = lines.Count(); i != text.Lines.Count; i++)
-                        {
-                            text.AddLine(true);
-                        }
-                    }
-                    foreach (var line in lines)
-                    {
-                        text.Lines[line_num] = new Line(line.Value);
-                        line_num++;
-                    }
-                    fragment_num++;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Ошибка");
-            }*/
             try
             {
                 if (Stcm2l == null)
                 {
                     return;
                 }
-                var form = new ImportWindow(Stcm2l);
+                var form = new ImportWindow(this);
 
                 if ((bool)!form.ShowDialog())
                 {
@@ -244,13 +171,17 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
             if (openFileDialog.ShowDialog() == true)
             {
-                OpenFile(openFileDialog.FileName);
+                try
+                {
+                    OpenFile(openFileDialog.FileName);
+                }catch(Exception exp)
+                {
+                    MessageBox.Show(exp.ToString());
+                }
             }
         }
-        private TranslateData MakeTranslate(MutableAction action,bool insert = false)
+        private TranslateData MakeTranslate(DefaultAction action,bool insert = false)
         {
-            var param = action.Parameters[0] as LocalParameter;
-            var data = new StringData(param.ParameterData);
             foreach (var translate in Stcm2l.Translates)
             {
                 foreach(var _action in translate.Actions)
@@ -261,12 +192,15 @@ namespace Diabolik_Lovers_STCM2L_Editor
                     }
                 }
             }
+            var param = action.Parameters[0] as LocalParameter;
+            var data2 = new StringData("");
+            var data = new ProxyData(new StringData(param.ParameterData),data2);
             param.ParameterData = data;
-            var _actions = new List<ActionOriginal>
+            var _actions = new List<ActionProxy>
             {
-                new ActionOriginal { Action = action, Original = data }
+                new ActionProxy { Action = action, Proxy = data }
             };
-            var _translate = new TranslateData("", _actions);
+            var _translate = new TranslateData(data2, _actions);
             if(insert)
                 Stcm2l.Translates.Add(_translate);
             return _translate;
@@ -275,7 +209,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
         {
             var actions = Stcm2l.Actions;
             TextTranslate text = null;
-            translates = new BindingList<TextTranslate>();
+            Translates = new BindingList<TextTranslate>();
             for (var i = 0; i < actions.Count; i++)
             {
                 var action = actions[i];
@@ -292,11 +226,11 @@ namespace Diabolik_Lovers_STCM2L_Editor
                         {
                             throw new Exception("WTF");
                         }
-                        text.Name = MakeTranslate(action as MutableAction);
+                        text.Name = MakeTranslate(action as DefaultAction);
                     }
                     else if (action.OpCode == ActionHelpers.ACTION_TEXT)
                     {
-                        var temp = MakeTranslate(action as MutableAction,true);
+                        var temp = MakeTranslate(action as DefaultAction,true);
                         text.Lines.Add(temp);
                     }
                     i++;
@@ -304,7 +238,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 }
                 if(text != null)
                 {
-                    translates.Add(text);
+                    Translates.Add(text);
                     text = null;
                 }
             }
@@ -318,10 +252,11 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
             if (Stcm2l.Load())
             {
+                AddUpdateAppSettings("lastFile", path);
                 MakeTexts();
 
-                TextsList.DataContext = translates;
-                TextsList.ItemsSource = translates;
+                TextsList.DataContext = Translates;
+                TextsList.ItemsSource = Translates;
 
                 LinesList.DataContext = null;
                 LinesList.ItemsSource = null;
@@ -330,17 +265,17 @@ namespace Diabolik_Lovers_STCM2L_Editor
                 NameBox2.DataContext = null;
 
                 ShouldSave = false;
-                AddUpdateAppSettings("lastFile", path);
                 TextsList.SelectionChanged += TextsList_SelectionChanged;
             }
             else
             {
-                Console.WriteLine("Invalid File");
+                throw new Exception("Invalid File");
             }
         }
 
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            var item = sender;
             SelectItem(TextsList.SelectedIndex);
         }
 
@@ -364,13 +299,21 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void SaveCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Stcm2l == null || !Stcm2l.Save(Stcm2l.FilePath))
+            try
             {
-                Console.WriteLine("Failed to save.");
+
+                if (Stcm2l == null || !Stcm2l.Save(Stcm2l.FilePath))
+                {
+                    Console.WriteLine("Failed to save.");
+                }
+                else
+                {
+                    ShouldSave = false;
+                }
             }
-            else
+            catch(Exception exp) 
             {
-                ShouldSave = false;
+                MessageBox.Show(exp.ToString());
             }
         }
         private void SelectItem(int ind)
@@ -401,55 +344,35 @@ namespace Diabolik_Lovers_STCM2L_Editor
             SelectItem(TextsList.SelectedIndex);
         }
 
-        private void ResetLineClick(object sender, RoutedEventArgs e)
-        {
-            ((sender as MenuItem).DataContext as TextEntity).Lines[LinesList.SelectedIndex].Reset();
-        }
-
-        private void ResetNameClick(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void AddNewLineClick(object sender, RoutedEventArgs e)
         {
-            /*if (LinesList.DataContext as TextEntity != null)
-            {
-                InsertLine();
-                Stcm2l.AddLine(TextsList.SelectedIndex, 1);
-            }*/
+            InsertLine();
         }
 
         private void InsertNewLineBeforeClick(object sender, RoutedEventArgs e)
         {
-            /*if (LinesList.DataContext as TextEntity != null)
-            {
-                InsertLine(LinesList.SelectedIndex);
-                Stcm2l.AddLine(TextsList.SelectedIndex, 1);
-            }*/
+            InsertLine(LinesList.SelectedIndex);
         }
 
         private void InsertNewLineAfterClick(object sender, RoutedEventArgs e)
         {
-           /* if (LinesList.DataContext as TextEntity != null)
-            {
-                InsertLine(LinesList.SelectedIndex + 1);
-                Stcm2l.AddLine(TextsList.SelectedIndex, 1);
-            }*/
+            InsertLine(LinesList.SelectedIndex + 1);
         }
 
         private void InsertLine(int index = -1)
         {
-            /*(LinesList.DataContext as TextEntity).AddLine(false, index);
-            ShouldSave = true;*/
+            var translate = LinesList.DataContext as TextTranslate;
+            if (translate != null) {
+                translate.AddLine(Stcm2l, index);
+                ShouldSave = true;
+            }
         }
 
         private void DeleteLineClick(object sender, RoutedEventArgs e)
         {
-            /*int index = LinesList.SelectedIndex;
-            ((sender as MenuItem).DataContext as TextEntity).DeleteLine(index);
-            Stcm2l.DeleteLine(index, 1);
-            ShouldSave = true;*/
+            int index = LinesList.SelectedIndex;
+            ((sender as MenuItem).DataContext as TextTranslate).DeleteLine(Stcm2l,index);
+            ShouldSave = true;
         }
 
         private void InsertNewTextAfterClick(object sender, RoutedEventArgs e)
@@ -464,105 +387,13 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void InsertNewText(bool before)
         {
-            var ind = TextsList.SelectedIndex;
-            if (ind == -1)
-            {
-                return;
-            }
-            var actions = Stcm2l.Actions;
-            bool newPage = false;
-            var baseTranslate = translates[ind];
-            TranslateData name = baseTranslate.Name;
-            
-            if (name is NullTranslateData)
-            {
-                string messageBoxCaption = "New page";
-                string messageBoxText = "Do you want to create a new page?";
-                MessageBoxButton button = MessageBoxButton.YesNo;
-                MessageBoxImage image = MessageBoxImage.Question;
-
-                MessageBoxResult result = MessageBox.Show(messageBoxText, messageBoxCaption, button, image);
-
-                newPage = result == MessageBoxResult.Yes;
-            }
-
-            var translate = new TextTranslate
-            {
-                Name = name
-            };
-            int actionInd = 0;
-            if (before)
-            {
-                if(name is NullTranslateData)
-                {
-                    actionInd = actions.IndexOf(baseTranslate.Lines[0].Actions[0].Action);
-                    if (newPage)
-                    {
-                        actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_NEW_PAGE, 0));
-                        actionInd++;
-                        actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
-                        actionInd++;
-                    }
-                }
-                else
-                {
-                    actionInd = actions.IndexOf(baseTranslate.Name.Actions[0].Action);
-                    var action = new MutableAction(0, ActionHelpers.ACTION_NAME,1);
-                    var _data = new StringData("");
-                    action.Params[0] = new LocalParameter(_data);
-                    actions.Insert(actionInd, action);
-                    actionInd++;
-                }
-
-                actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
-                //actionInd++;
-            }
-            else
-            {
-                actionInd = actions.IndexOf(baseTranslate.Lines.Last().Actions[0].Action) + 1;
-
-                actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
-                actionInd++;
-                if (name is NullTranslateData)
-                {
-                    if (newPage)
-                    {
-                        actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_NEW_PAGE, 0));
-                        actionInd++;
-                        actions.Insert(actionInd, new MutableAction(0, ActionHelpers.ACTION_DIVIDER, 0));
-                        actionInd++;
-                    }
-                }
-                else
-                {
-                    var action = new MutableAction(0, ActionHelpers.ACTION_NAME, 1);
-                    var _data = new StringData("");
-                    action.Params[0] = new LocalParameter(_data);
-                    actions.Insert(actionInd, action);
-                    actionInd++;
-                }
-            }
-            var _action = new MutableAction(0, ActionHelpers.ACTION_TEXT, 1);
-            var data = new StringData("");
-            _action.Params[0] = new LocalParameter(data);
-            actions.Insert(actionInd, _action);
-            actionInd++;
-            var translateData = MakeTranslate(_action,true);
-            translate.Lines.Add(translateData);
-            if (before)
-            {
-                translates.Insert(ind, translate);
-            }
-            else
-            {
-                translates.Insert(ind+1, translate);
-            }
-            ShouldSave = true;
+            InsertText(TextsList.SelectedIndex,before);
         }
 
         private void DeleteTextClick(object sender, RoutedEventArgs e)
         {
-            /*Stcm2l.DeleteText(TextsList.SelectedIndex);
+            DeleteText(TextsList.SelectedIndex);
+            
 
             LinesList.DataContext = null;
             LinesList.ItemsSource = null;
@@ -570,7 +401,7 @@ namespace Diabolik_Lovers_STCM2L_Editor
             NameBox1.DataContext = null;
             NameBox2.DataContext = null;
 
-            ShouldSave = true;*/
+            ShouldSave = true;
         }
 
         private void TextChanged(object sender, TextChangedEventArgs e)

@@ -43,21 +43,27 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
             // Translation Data
             string translation = "";
-
-            // Loop through the collection extracting the translated objects
-            foreach (object item in translationItems)
+            try
             {
-                // Convert the item array to IEnumerable
-                IEnumerable translationLineObject = item as IEnumerable;
+                // Loop through the collection extracting the translated objects
+                foreach (object item in translationItems)
+                {
+                    // Convert the item array to IEnumerable
+                    IEnumerable translationLineObject = item as IEnumerable;
 
-                // Convert the IEnumerable translationLineObject to a IEnumerator
-                IEnumerator translationLineString = translationLineObject.GetEnumerator();
+                    // Convert the IEnumerable translationLineObject to a IEnumerator
+                    IEnumerator translationLineString = translationLineObject.GetEnumerator();
 
-                // Get first object in IEnumerator
-                translationLineString.MoveNext();
+                    // Get first object in IEnumerator
+                    translationLineString.MoveNext();
 
-                // Save its value (translated text)
-                translation += string.Format(" {0}", Convert.ToString(translationLineString.Current));
+                    // Save its value (translated text)
+                    translation += string.Format(" {0}", Convert.ToString(translationLineString.Current));
+                }
+            }
+            catch(Exception)
+            {
+                return "";
             }
 
             // Remove first blank character

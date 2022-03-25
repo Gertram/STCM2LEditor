@@ -1,16 +1,23 @@
 ﻿<Window x:Class="Diabolik_Lovers_STCM2L_Editor.ImportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Name="root"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Diabolik_Lovers_STCM2L_Editor"
+        xmlns:classes="clr-namespace:Diabolik_Lovers_STCM2L_Editor.classes" d:DataContext="{d:DesignInstance Type=classes:Line}"
         mc:Ignorable="d"
         Title="ImportTextWindow" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
     <Window.CommandBindings>
-        <CommandBinding Command="Open" Executed="OpenFileCommad"/>
+        <CommandBinding Command="local:WindowCommands.ImportFromXML" Executed="ImportXMLCommand"/>
+        <CommandBinding Command="local:WindowCommands.ImportFromText" Executed="ImportTextCommand"/>
+        <CommandBinding Command="local:WindowCommands.TextView" Executed="TextViewCommand"/>
+        <CommandBinding Command="local:WindowCommands.NewLine" Executed="NewLineCommand"/>
     </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Gesture="Ctrl+O" Command="Open"/>
+        <KeyBinding Gesture="Ctrl+Shift+X" Command="local:WindowCommands.ImportFromXML"/>
+        <KeyBinding Gesture="Ctrl+Shift+T" Command="local:WindowCommands.ImportFromText"/>
+        <KeyBinding Gesture="Ctrl+T" Command="local:WindowCommands.TextView"/>
     </Window.InputBindings>
     <DockPanel>
         <Grid  DockPanel.Dock="Top">
@@ -19,14 +26,12 @@
                 <ColumnDefinition Width="150"></ColumnDefinition>
                 <ColumnDefinition Width="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Menu Grid.Column="0" IsMainMenu="True">
-                <MenuItem Header="_File">
-                    <MenuItem 
-                    Header="_Open" 
-                    Command="Open"
-                    InputGestureText="Ctrl+O"
-                />
+            <Menu Grid.Column="0" IsMainMenu="True" >
+                <MenuItem Header="_Import">
+                    <MenuItem Header="_XML" Command="local:WindowCommands.ImportFromXML" InputGestureText="Ctrl+Shift+X"/>
+                    <MenuItem Header="_Text" Command="local:WindowCommands.ImportFromText" InputGestureText="Ctrl+Shift+T"/>
                 </MenuItem>
+                <MenuItem Header="TextView" Command="local:WindowCommands.TextView" InputGestureText="Ctrl+T"/>
             </Menu>
             <CheckBox Grid.Column="1" Content="Автоперевод" Name="AutotranslateCheckbox" IsChecked="True"></CheckBox>
             <Button Grid.Column="2" Content="Сохранить" Click="Button_Click"></Button>
@@ -40,21 +45,29 @@
                 <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-                <ListView Name="TextsList1" BorderBrush="#00000000">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-                        </Style>
-                    </ListView.ItemContainerStyle>
+                <ListView Name="TextsList1" BorderBrush="#00000000"
+                          SelectionChanged="TextsList_SelectionChanged"
+                          ItemsSource="{Binding Path=Texts,Mode=OneWay}">
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Insert new text:">
+                                <MenuItem Header="Before" Click="InsertBeforeClick"/>
+                                <MenuItem Header="After" Click="InsertAfterClick"/>
+                            </MenuItem>
+                            <MenuItem Header="Delete" Click="DeleteClick"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].LineText}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].OriginalText}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
             </Grid>
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" />
             <Grid Grid.Column="2">
-                <ListView Name="TextsList2" BorderBrush="#00000000">
+                <ListView Name="TextsList2" BorderBrush="#00000000" 
+                          ItemsSource="{Binding Path=TranslatedTexts,Mode=OneWay}" SelectionChanged="TextsList_SelectionChanged">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new text:">
@@ -64,13 +77,9 @@
                             <MenuItem Header="Delete" Click="DeleteTextClick"/>
                         </ContextMenu>
                     </ListView.ContextMenu>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].LineText}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].Text}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -99,7 +108,7 @@
                     <TextBox 
                         Grid.Column="1"
                         Name="NameBox" 
-                        Text="{Binding Path=Name.LineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Text="{Binding Path=Name.OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                         MaxLength="20"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
@@ -118,7 +127,7 @@
                         <DataTemplate>
                             <TextBox 
                                 DockPanel.Dock="Left" 
-                                Text="{Binding Path=LineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsReadOnly="True"
                                 MaxLength="40"
                                 MinWidth="100px" 
@@ -127,7 +136,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <ListView Grid.Row="2" Name="LinesList2" BorderBrush="Black">
+                <ListView Grid.Row="2" Name="LinesList2" ItemsSource="{Binding Path=Lines}" BorderBrush="Black">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new line:">
@@ -141,11 +150,15 @@
                         <DataTemplate>
                             <TextBox 
                                 DockPanel.Dock="Left" 
-                                Text="{Binding Path=LineText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{Binding Mode=TwoWay,Path=Text, UpdateSourceTrigger=PropertyChanged}"
                                 MaxLength="40"
                                 MinWidth="100px" 
                                 HorizontalAlignment="Left"
-                            />
+                            >
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="ENTER" Modifiers="Shift" Command="local:WindowCommands.NewLine" CommandParameter="{Binding ElementName=root, Path=(FocusManager.FocusedElement)}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

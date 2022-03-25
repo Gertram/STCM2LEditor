@@ -8,7 +8,7 @@ using Diabolik_Lovers_STCM2L_Editor.utils;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal partial class ParameterData : IParameterData
+    public partial class ParameterData : IParameterData
     {
         const int headerLength = sizeof(int) * 4;
         private int address;
@@ -18,10 +18,6 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
             get => address;
             set
             {
-                if (value != address && address != 0)
-                {
-                    throw new Exception();
-                }
                 address = value;
             }
         }
@@ -63,7 +59,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
                 Console.WriteLine($"{seek:X}");
             }
         }
-        public void Write(List<byte> bytes)
+        public byte[] Write()
         {
             var buff = new byte[Length];
             var alignedLength = AlignedLength;
@@ -72,8 +68,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
             buff = ByteUtil.InsertInt32Ref(buff, alignedLength / 4, ref position);
             buff = ByteUtil.InsertUint32Ref(buff, Value, ref position);
             buff = ByteUtil.InsertInt32Ref(buff, alignedLength, ref position);
-            buff = ByteUtil.InsertBytesRef(buff, ExtraData.ToArray(), ref position);
-            bytes.AddRange(buff);
+            return ByteUtil.InsertBytesRef(buff, ExtraData.ToArray(), ref position);
         }
     }
 }

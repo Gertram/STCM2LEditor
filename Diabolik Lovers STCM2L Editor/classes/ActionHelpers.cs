@@ -5,6 +5,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
     internal static class ActionHelpers
     {
         public const uint ACTION_NAME = 0xd4;
+       // public const uint ACTION_NEW_TEXT = 0x7a;
         public const UInt32 ACTION_TEXT = 0xd2;
         public const UInt32 ACTION_CHOICE = 0xe7;
         public const UInt32 ACTION_DIVIDER = 0xd3;

@@ -28,163 +28,114 @@ namespace Diabolik_Lovers_STCM2L_Editor
     /// </summary>
     public partial class ImportWindow : Window
     {
-        private readonly classes.STCM2L stcm2l;
-        private readonly BindingList<classes.TextEntity> texts = new BindingList<classes.TextEntity>();
-        internal ImportWindow(classes.STCM2L file)
+        private MainWindow mainWin;
+        public BindingList<TextEntity> TranslatedTexts { get; set; } = new BindingList<TextEntity>();
+        public BindingList<TextTranslate> Texts { get; set; }
+        internal ImportWindow(MainWindow win)
         {
             InitializeComponent();
-            stcm2l = file;
-            //TextsList1.ItemsSource = file.Texts;
-            //TextsList1.DataContext = file.Texts;
+            this.mainWin = win;
+            Texts = win.Translates;
+            TextsList1.DataContext = this;
+            TextsList2.DataContext = this;
         }
-
-        private void OpenFileCommad(object sender, ExecutedRoutedEventArgs e)
+        private void ScrollTo(int ind, ListView list, ListView lines)
         {
-            try
+            if(ind == 0)
             {
-                var ofd = new OpenFileDialog
-                {
-                    Filter = "XML Files (*.xml)|*.xml"
-                };
-                if ((bool)!ofd.ShowDialog())
-                {
-                    return;
-                }
-                var doc = XDocument.Load(ofd.FileName);
-                var root = doc.Root;
-                if (root.Name.LocalName.ToUpper() != "SCRIPT")
-                {
-                    MessageBox.Show("Не был найден корневой элемент \"script\"");
-                    return;
-                }
-                var fragment_num = 0;
-                var fragments = root.Elements("fragment");
-                if (fragments.Count() == 0)
-                {
-                    MessageBox.Show("Необнаружена ни одна строка");
-                    return;
-                }
-                texts.Clear();
-                foreach (var fragment in fragments)
-                {
-                    var line_num = 0;
-                    var lines = fragment.Elements("line");
-                    var text = new classes.TextEntity();
-
-                    foreach (var line in lines)
-                    {
-                        text.Lines.Add(new classes.Line(line.Value));
-                        line_num++;
-                    }
-                    fragment_num++;
-                    texts.Add(text);
-                }
-                TextsList2.DataContext = texts;
-                TextsList2.ItemsSource = texts;
-
-                TextsList1.SelectionChanged += TextsList_SelectionChanged;
-                TextsList2.SelectionChanged += TextsList_SelectionChanged;
+                return;
             }
-            catch (Exception ex)
+            if(ind < 0)
             {
-                MessageBox.Show(ex.ToString(), "Ошибка");
+                ind = 0;
             }
-        }
-        private void ScrollTo(int ind,ListView list,ListView lines)
-        {
-            if(ind >= list.Items.Count)
+            if (ind >= list.Items.Count)
             {
-                ind = list.Items.Count-1;
+                ind = list.Items.Count - 1;
             }
             const int pad = 10;
-            if(list.Items.Count <= ind + pad)
+            if (list.Items.Count <= ind + pad)
             {
                 list.ScrollIntoView(list.Items[ind]);
             }
             else
             {
-                list.ScrollIntoView(list.Items[ind+pad]);
+                list.ScrollIntoView(list.Items[ind + pad]);
             }
             list.SelectedIndex = ind;
             var item = list.Items[ind] as classes.TextEntity;
             lines.DataContext = item;
-
-            Binding binding = new Binding();
-            binding.Path = new PropertyPath("Lines");
-            binding.Source = item;
-            binding.Mode = BindingMode.TwoWay;
-            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-
-            lines.SetBinding(ItemsControl.ItemsSourceProperty, binding);
         }
         private void ScrollTo(int ind)
         {
-            if(ind < 0 || ind >= TextsList1.Items.Count)
+            if (ind < 0 || ind >= TextsList1.Items.Count)
             {
                 return;
             }
             ScrollTo(ind, TextsList2, LinesList2);
-            ScrollTo(ind, TextsList1,LinesList1);
+            ScrollTo(ind, TextsList1, LinesList1);
 
-            var te = TextsList1.Items[ind] as classes.TextEntity;
+            var te = TextsList1.Items[ind] as TextTranslate;
 
             NameBox.DataContext = te;
+            LinesList1.DataContext = te.Lines;
+            LinesList1.ItemsSource = te.Lines;
 
             if ((bool)AutotranslateCheckbox.IsChecked)
             {
-                Autotranslate.Text = ClassTranslator.TranslateText(string.Join("", te.Lines.Select(x => x.LineText)));
+
+                Autotranslate.Text = ClassTranslator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
             }
         }
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ScrollTo((sender as ListView).SelectedIndex);
+            if(TextsList2 != null)
+                ScrollTo((sender as ListView).SelectedIndex);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             if (TextsList1.Items.Count != TextsList2.Items.Count)
             {
-                if(MessageBox.Show("Количество фрагментов в исходном и конечном текстах не совпадает. Продолжить?","Внимание",MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (MessageBox.Show("Количество фрагментов в исходном и конечном текстах не совпадает. Продолжить?", "Внимание", MessageBoxButton.YesNo) == MessageBoxResult.No)
                 {
                     return;
                 }
-            }/*
-            var fragments = stcm2l.Texts;
-            for(var i = 0;i < fragments.Count; i++)
+            }
+            for(var i = 0;i < mainWin.Translates.Count; i++)
             {
-                var fragment = fragments[i];
+                var fragment = mainWin.Translates[i];
                 try
                 {
-                    var te = texts[i];
+                    var te = TranslatedTexts[i];
                     if (fragment.Lines.Count > te.Lines.Count)
                     {
                         var size = fragment.Lines.Count - te.Lines.Count;
                         for (var j = 0; j < size; j++)
                         {
-                            fragment.DeleteLine(0);
+                            fragment.DeleteLine(mainWin.Stcm2l);
                         }
-                        stcm2l.DeleteLine(i, size);
                     }
                     else if (fragment.Lines.Count < te.Lines.Count)
                     {
                         var size = te.Lines.Count - fragment.Lines.Count;
                         for (var j = 0; j < size; j++)
                         {
-                            fragment.AddLine(false, 0);
+                            fragment.AddLine(mainWin.Stcm2l);
                         }
-                        stcm2l.AddLine(i, size);
                     }
 
-                    for (var j = 0; j < te.Lines.Count; j++)
+                    for (var j = 0; j < fragment.Lines.Count; j++)
                     {
-                        fragment.Lines[j] = te.Lines[j];
+                        fragment.Lines[j].TranslatedText = te.Lines[j].Text;
                     }
                 }
-                catch
+                catch(Exception exp)
                 {
+                    MessageBox.Show(exp.ToString());
                     return;
                 }
-            }*/
+            }
         }
 
         private void AddNewLineClick(object sender, RoutedEventArgs e)
@@ -213,25 +164,17 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void InsertLine(int index = -1)
         {
-            //(LinesList2.DataContext as TextEntity).AddLine(false, index);
+            (LinesList2.DataContext as TextEntity).AddLine("",index);
         }
 
         private void DeleteLineClick(object sender, RoutedEventArgs e)
         {
-            /*int index = LinesList2.SelectedIndex;
-            ((sender as MenuItem).DataContext as TextEntity).DeleteLine(index);*/
+            ((sender as MenuItem).DataContext as TextEntity).DeleteLine(LinesList2.SelectedIndex);
         }
 
         private void DeleteTextClick(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                texts.RemoveAt(TextsList2.SelectedIndex);
-            }
-            catch
-            {
-
-            }
+            TranslatedTexts.RemoveAt(TextsList2.SelectedIndex);
         }
         private void InsertNewTextAfterClick(object sender, RoutedEventArgs e)
         {
@@ -245,15 +188,136 @@ namespace Diabolik_Lovers_STCM2L_Editor
 
         private void InsertNewText(bool before)
         {
-            if (TextsList2.SelectedIndex != -1)
+            if (TextsList2.SelectedIndex == -1)
+            {
+                return;
+            }
+            var te = new TextEntity();
+            te.Lines.Add(new TextEntity.MyString{Text=""});
+            if (before)
+                TranslatedTexts.Insert(TextsList2.SelectedIndex, te);
+            else
+                TranslatedTexts.Insert(TextsList2.SelectedIndex + 1, te);
+        }
+
+        private void InsertBeforeClick(object sender, RoutedEventArgs e)
+        {
+            mainWin.InsertText(TextsList1.SelectedIndex,true);
+        }
+
+        private void InsertAfterClick(object sender, RoutedEventArgs e)
+        {
+            mainWin.InsertText(TextsList1.SelectedIndex,false);
+        }
+
+        private void DeleteClick(object sender, RoutedEventArgs e)
+        {
+            mainWin.DeleteText(TextsList1.SelectedIndex);
+        }
+        private void ImportXMLCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+
+            try
+            {
+                var ofd = new OpenFileDialog
+                {
+                    Filter = "XML Files (*.xml)|*.xml"
+                };
+                if ((bool)!ofd.ShowDialog())
+                {
+                    return;
+                }
+                var doc = XDocument.Load(ofd.FileName);
+                var root = doc.Root;
+                if (root.Name.LocalName.ToUpper() != "SCRIPT")
+                {
+                    MessageBox.Show("Не был найден корневой элемент \"script\"");
+                    return;
+                }
+                var fragment_num = 0;
+                var fragments = root.Elements("fragment");
+                if (fragments.Count() == 0)
+                {
+                    MessageBox.Show("Необнаружена ни одна строка");
+                    return;
+                }
+                TranslatedTexts.Clear();
+                foreach (var fragment in fragments)
+                {
+                    var line_num = 0;
+                    var lines = fragment.Elements("line");
+                    var text = new TextEntity();
+
+                    foreach (var line in lines)
+                    {
+                        text.Lines.Add(new TextEntity.MyString { Text = line.Value });
+                        line_num++;
+                    }
+                    fragment_num++;
+                    TranslatedTexts.Add(text);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Ошибка");
+            }
+        }
+
+        private void ImportTextCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            var win = new ImportTextWindow();
+            win.Texts = TranslatedTexts.Select(x => string.Join(" ", x.Lines.Select(y => y.Text))).ToList();
+            win.ShowDialog();
+            TranslatedTexts.Clear();
+            var splitters = new char[] { ' ' };
+            foreach(var text in win.Texts)
             {
                 var te = new TextEntity();
-                te.Lines.Add(new classes.Line(""));
-                if (before)
-                    texts.Insert(TextsList2.SelectedIndex, te);
-                else
-                    texts.Insert(TextsList2.SelectedIndex+1,te);
+                var words = text.Split(splitters);
+                var line = "";
+                foreach(var word in words)
+                {
+                    if(line.Length + word.Length >= 40)
+                    {
+                        te.AddLine(line);
+                        line = word;
+                    }
+                    else
+                    {
+                        line += " " + word;
+                    }
+                }
+                if(line.Length > 0)
+                {
+                    te.AddLine(line);
+                }
+                TranslatedTexts.Add(te);
             }
+        }
+
+        private void TextViewCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            
+        }
+
+        private void NewLineCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            var txt = e.Parameter as TextBox;
+            var str = txt.DataContext as TextEntity.MyString;
+            var te = LinesList2.DataContext as TextEntity;
+            var ind = te.Lines.IndexOf(str) + 1;
+            var text = txt.Text.Substring(txt.CaretIndex) + " ";
+            txt.Text = txt.Text.Substring(0, txt.CaretIndex);
+            if (te.Lines.Count < ind)
+            {
+                te.AddLine();
+            }
+            te.Lines[ind] = new TextEntity.MyString { Text = text + te.Lines[ind].Text };
         }
     }
 }

@@ -4,31 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Diabolik_Lovers_STCM2L_Editor.utils;
+
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal class GlobalParameter:Parameter
+    internal class GlobalParameter : BaseParameter
     {
         public IAction GlobalPointer { get; set; }
-        public GlobalParameter (Parameter param):base (param)
-        {
-            if (!Global.Calls.ContainsKey(Value2))
-            {
-                Global.Calls.Add(Value2, new List<GlobalParameter>());
-            }
+        public override uint Value2 { get => (uint)GlobalPointer.Address; set => GlobalPointer.Address = (int)value; }
 
-            Global.Calls[Value2].Add(this);
+        public GlobalParameter (Parameter param)
+        {
+            if (!Global.Calls.ContainsKey(param.Value2))
+            {
+                Global.Calls.Add(param.Value2, new List<GlobalParameter>());
+            }
+            Value1 = param.Value1;
+            Value3 = param.Value3;
+            Global.Calls[param.Value2].Add(this);
             GlobalPointer = null;
-        }
-
-        internal override void Write(List<byte> bytes, List<byte> extra)
-        {
-            bytes.AddRange(BitConverter.GetBytes(Value1)); 
-            if (GlobalPointer == null)
-            {
-                throw new Exception("Lol");
-            }
-            bytes.AddRange(BitConverter.GetBytes(GlobalPointer.Address));
-            bytes.AddRange(BitConverter.GetBytes(Value3));
         }
     }
 }

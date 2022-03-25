@@ -8,8 +8,10 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
     public interface IParameter
     {
-        uint Value1 { get; }
-        uint Value2 { get; }
-        uint Value3 { get; }
+        uint Value1 { get; set; }
+        uint Value2 { get; set; }
+        uint Value3 { get; set; }
+        int Length { get; }
+        void Write(byte[] buffer,ref int seek);
     }
 }

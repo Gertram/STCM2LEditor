@@ -15,13 +15,14 @@
         <CommandBinding Command="Open" Executed="OpenFileCommad"/>
         <CommandBinding Command="Save" Executed="SaveCommand"/>
         <CommandBinding Command="SaveAs" Executed="SaveAsCommand"/>
-        <CommandBinding Command="local:WindowCommands.ImportFrom" Executed="ImportFromCommand"/>
+        <CommandBinding Command="local:WindowCommands.Import" Executed="ImportFromCommand"/>
         <CommandBinding Command="local:WindowCommands.ActionsView" Executed="ActionsViewCommand"/>
         <CommandBinding Command="local:WindowCommands.PlaceView" Executed="PlaceWindowCommand"/>
         <CommandBinding Command="local:WindowCommands.NameView" Executed="NameWindowCommand"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+O" Command="Open"/>
+        <KeyBinding Gesture="Ctrl+I" Command="local:WindowCommands.Import"/>
         <KeyBinding Gesture="Ctrl+S" Command="Save"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="SaveAs"/>
     </Window.InputBindings>
@@ -44,9 +45,7 @@
                     InputGestureText="Ctrl+Shift+S"
                 />
             </MenuItem>
-            <MenuItem Header="_Import">
-                <MenuItem Header="_ImportXML" Command="local:WindowCommands.ImportFrom"/>
-            </MenuItem>
+            <MenuItem Header="_Import" Command="local:WindowCommands.Import" InputGestureText="Ctrl+I"/>
             <MenuItem Header="_View">
                 <MenuItem Header="_Actions" Command="local:WindowCommands.ActionsView"/>
                 <MenuItem Header="_Places" Command="local:WindowCommands.PlaceView"/>
@@ -70,11 +69,6 @@
                             <MenuItem Header="Delete" Click="DeleteTextClick"/>
                         </ContextMenu>
                     </ListView.ContextMenu>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-                            <EventSetter Event="PreviewMouseLeftButtonUp" Handler="TextsListItemClick" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -149,7 +143,6 @@
                                 <MenuItem Header="Before" Click="InsertNewLineBeforeClick"/>
                                 <MenuItem Header="After" Click="InsertNewLineAfterClick"/>
                             </MenuItem>
-                            <MenuItem Header="Reset" Click="ResetLineClick"/>
                             <MenuItem Header="Delete" Click="DeleteLineClick"/>
                         </ContextMenu>
                     </ListView.ContextMenu>

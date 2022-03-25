@@ -9,7 +9,7 @@ using Diabolik_Lovers_STCM2L_Editor.utils;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal class LinkParameterData : IParameterData
+    internal class LinkParameterData
     {
         private const int TYPE_OFFSET = 0;
         private const int OFFSET_OFFSET = sizeof(uint);

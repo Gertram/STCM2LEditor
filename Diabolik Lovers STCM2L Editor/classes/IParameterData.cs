@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal interface IParameterData
+    public interface IParameterData
     {
         int Address { get; set; }
         int Length { get; }
@@ -16,7 +16,7 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
         uint Type { get; }
         IReadOnlyList<byte> ExtraData { get; }
 
-        void Write(List<byte> bytes);
+        byte[] Write();
     }
     
 }

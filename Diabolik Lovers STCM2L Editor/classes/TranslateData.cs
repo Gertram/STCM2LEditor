@@ -9,51 +9,43 @@ using Diabolik_Lovers_STCM2L_Editor.utils;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal class ActionOriginal
+    public class ActionProxy
     {
-        public MutableAction Action { get; set; }
-        public StringData Original { get; set; }
+        public DefaultAction Action { get; set; }
+        public ProxyData Proxy { get; set; }
     }
-    internal class TranslateData
+    public class TranslateData
     {
         protected TranslateData() { }
-        public readonly BindingList<ActionOriginal> Actions;
+        public BindingList<ActionProxy> Actions { get; set; }
+        public Dictionary<int, StringData> ActionsExport { get; set; } = new Dictionary<int, StringData>();
 
-        public TranslateData(string translatedText, IList<ActionOriginal> actions)
+        public TranslateData(StringData data, IList<ActionProxy> actions)
         {
-            Actions = new BindingList<ActionOriginal>(actions);
-            Data = new StringData(translatedText);
+            Actions = new BindingList<ActionProxy>(actions);
+            
+            Data = data;
         }
-        public virtual string OriginalText => Actions[0].Original.Text;
-        private StringData Data { get; set; }
+        public virtual string OriginalText => Actions[0].Proxy.Original.Text;
+        public StringData Data { get; set; }
         public virtual string TranslatedText { get => Data.Text; set => Data.Text = value; }
 
-        public TranslateData(byte[] file, IReadOnlyList<MutableAction> fileActions, ref int seek)
+        public TranslateData(byte[] file, ref int seek)
         {
             Data = new StringData(file, ref seek);
 
             var count = ByteUtil.ReadInt32Ref(file, ref seek);
-            Actions = new BindingList<ActionOriginal>();
+            Actions = new BindingList<ActionProxy>();
             for (var i = 0; i < count; i++)
             {
                 var actionAddress = ByteUtil.ReadInt32Ref(file, ref seek);
                 var originalAddress = ByteUtil.ReadInt32Ref(file, ref seek);
                 var buff = originalAddress;
-                var original = new StringData(file, ref buff);
-                original.Address = originalAddress;
-                bool founded = false;
-                foreach (var action in fileActions)
+                var original = new StringData(file, ref buff)
                 {
-                    if (action.Address == actionAddress)
-                    {
-                        Actions.Add(new ActionOriginal { Action = action, Original = original });
-                        founded = true;
-                    }
-                }
-                if (founded == false)
-                {
-                    throw new Exception("Не удалось найти действие для перевода");
-                }
+                    Address = originalAddress
+                };
+                ActionsExport.Add(actionAddress,original);
             }
         }
         public int SetAddress(int startAddress)
@@ -62,27 +54,14 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
 
             return startAddress + Data.Length+ActionsLength;
         }
-        public void InsertTranslate()
-        {
-            foreach (var action in Actions)
-            {
-                if (action.Action.OpCode == ActionHelpers.ACTION_PLACE)
-                {
-                    (action.Action.Parameters[3] as LocalParameter).ParameterData = Data;
-                }
-                else if (action.Action.OpCode == ActionHelpers.ACTION_NAME || action.Action.OpCode == ActionHelpers.ACTION_TEXT)
-                {
-                    (action.Action.Parameters[0] as LocalParameter).ParameterData = Data;
-                }
-            }
-        }
+
+        
         private int ActionsLength => sizeof(int) * (1 + Actions.Count * 2);
         public byte[] Write()
         {
-            var ParameDataBytes = new List<byte>();
-            Data.Write(ParameDataBytes);
+            var ParameDataBytes = Data.Write();
 
-            var bytes = new byte[ParameDataBytes.Count + ActionsLength];
+            var bytes = new byte[ParameDataBytes.Length + ActionsLength];
 
             int position = 0;
             bytes = ByteUtil.InsertBytesRef(bytes, ParameDataBytes.ToArray(), ref position);
@@ -90,9 +69,18 @@ namespace Diabolik_Lovers_STCM2L_Editor.classes
             foreach (var action in Actions)
             {
                 bytes = ByteUtil.InsertInt32Ref(bytes, action.Action.Address, ref position);
-                bytes = ByteUtil.InsertInt32Ref(bytes, action.Original.Address, ref position);
+                bytes = ByteUtil.InsertInt32Ref(bytes, action.Proxy.Original.Address, ref position);
             }
             return bytes;
+        }
+
+        public virtual void DeleteFrom(STCM2L file)
+        {
+            foreach(var item in Actions)
+            {
+                file.Actions.Remove(item.Action);
+            }
+            file.Translates.Remove(this);
         }
     }
 }

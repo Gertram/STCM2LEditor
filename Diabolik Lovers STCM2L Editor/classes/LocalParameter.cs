@@ -8,26 +8,23 @@ using Diabolik_Lovers_STCM2L_Editor.utils;
 
 namespace Diabolik_Lovers_STCM2L_Editor.classes
 {
-    internal partial class LocalParameter : Parameter
+    internal partial class LocalParameter : BaseParameter
     {
         public IParameterData ParameterData { get; set; }
+        public int DataSeek { get; set; } = 0;
 
         public override int Length => base.Length + ParameterData.Length;
+        public override uint Value1 { get => (uint)ParameterData.Address; set => ParameterData.Address = (int)value; }
 
-        internal LocalParameter(IParameterData data) : base()
+        internal LocalParameter(IParameterData data)
         {
             ParameterData = data;
         }
-        internal LocalParameter(Parameter param, IParameterData data) : base(param)
+        internal LocalParameter(Parameter param, IParameterData data)
         {
             ParameterData = data;
-        }
-        internal override void Write(List<byte> bytes,List<byte> extra)
-        {
-            bytes.AddRange(BitConverter.GetBytes(ParameterData.Address));
-            bytes.AddRange(BitConverter.GetBytes(Value2));
-            bytes.AddRange(BitConverter.GetBytes(Value3));
-            ParameterData.Write(extra);
+            Value2 = param.Value2;
+            Value3 = param.Value3;
         }
     }
 }
