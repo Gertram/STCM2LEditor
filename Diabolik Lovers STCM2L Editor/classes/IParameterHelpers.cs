@@ -1,4 +1,4 @@
-﻿namespace Diabolik_Lovers_STCM2L_Editor.classes
+﻿namespace STCM2L.classes
 {
     internal static class IParameterHelpers
     {

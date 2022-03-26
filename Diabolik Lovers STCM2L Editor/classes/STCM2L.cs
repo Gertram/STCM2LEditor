@@ -1,4 +1,4 @@
-﻿using Diabolik_Lovers_STCM2L_Editor.utils;
+﻿using STCM2L.utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.ComponentModel;
 
-namespace Diabolik_Lovers_STCM2L_Editor.classes {
+namespace STCM2L.classes {
     public class STCM2L {
         public const int HEADER_OFFSET = 0x20;
         public const int EXPORT_SIZE = 0x28;

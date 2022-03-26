@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
 
-namespace Diabolik_Lovers_STCM2L_Editor.utils {
+namespace STCM2L.utils {
     public static class ByteUtil {
         public static UInt32 ReadUInt32Ref(byte[] file, ref int seek) {
             return BitConverter.ToUInt32(ReadBytesRef(file, 4, ref seek), 0);

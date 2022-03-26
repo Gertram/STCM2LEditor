@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace Diabolik_Lovers_STCM2L_Editor.classes {
+namespace STCM2L.classes {
     class Line : INotifyPropertyChanged{
         public string LineText {
             get { return _LineText; }

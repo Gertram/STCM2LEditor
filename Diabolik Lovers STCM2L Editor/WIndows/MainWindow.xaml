@@ -1,0 +1,185 @@
+﻿<controls:MetroWindow x:Class="STCM2L.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:local="clr-namespace:STCM2L"
+        mc:Ignorable="d"
+        Title="STCM2L Editor"  Height="720" Width="1280"   
+         WindowStartupLocation="CenterScreen"
+        BorderBrush="{DynamicResource AccentColorBrush}"
+        BorderThickness="1"
+ >
+    <Window.CommandBindings>
+        <CommandBinding Command="Open" Executed="OpenFileCommad"/>
+        <CommandBinding Command="Save" Executed="SaveCommand"/>
+        <CommandBinding Command="SaveAs" Executed="SaveAsCommand"/>
+        <CommandBinding Command="local:WindowCommands.Import" Executed="ImportFromCommand"/>
+        <CommandBinding Command="local:WindowCommands.ActionsView" Executed="ActionsViewCommand"/>
+        <CommandBinding Command="local:WindowCommands.PlaceView" Executed="PlaceWindowCommand"/>
+        <CommandBinding Command="local:WindowCommands.NameView" Executed="NameWindowCommand"/>
+        <CommandBinding Command="local:WindowCommands.Pack" Executed="PackCommand"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+O" Command="Open"/>
+        <KeyBinding Gesture="Ctrl+I" Command="local:WindowCommands.Import"/>
+        <KeyBinding Gesture="Ctrl+S" Command="Save"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="SaveAs"/>
+        <KeyBinding Gesture="Ctrl+Shift+P" Command="local:WindowCommands.Pack"/>
+    </Window.InputBindings>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" IsMainMenu="True">
+            <MenuItem Header="_File">
+                <MenuItem 
+                    Header="_Open" 
+                    Command="Open"
+                    InputGestureText="Ctrl+O"
+                />
+                <MenuItem 
+                    Header="_Save" 
+                    Command="Save"
+                    InputGestureText="Ctrl+S" 
+                />
+                <MenuItem 
+                    Header="_Save As..." 
+                    Command="SaveAs"
+                    InputGestureText="Ctrl+Shift+S"
+                />
+            </MenuItem>
+            <MenuItem Header="_Import" Command="local:WindowCommands.Import" InputGestureText="Ctrl+I"/>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Actions" Command="local:WindowCommands.ActionsView"/>
+                <MenuItem Header="_Places" Command="local:WindowCommands.PlaceView"/>
+                <MenuItem Header="_Names" Command="local:WindowCommands.NameView"/>
+            </MenuItem>
+            <MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>
+        </Menu>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" MaxWidth="300"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="5*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <ListView Name="TextsList" BorderBrush="#00000000">
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Insert new text:">
+                                <MenuItem Header="Before" Click="InsertNewTextBeforeClick"/>
+                                <MenuItem Header="After" Click="InsertNewTextAfterClick"/>
+                            </MenuItem>
+                            <MenuItem Header="Delete" Click="DeleteTextClick"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" MaxWidth="130" Text="{Binding Lines[0].OriginalText}"/>
+                                <TextBlock Grid.Column="1" MaxWidth="130"  Text="{Binding Lines[0].TranslatedText}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" />
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label 
+                        Grid.Column="0"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center" 
+                        Content="Name: "
+                    />
+                    <TextBox 
+                        Grid.Column="1"
+                        Name="NameBox1" 
+                        Text="{Binding Path=Name.OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                        IsReadOnly="True"
+                        MaxLength="20"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                    />
+                    <Label 
+                        Grid.Column="2"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center" 
+                        Content="Translate: "
+                    />
+                    <TextBox 
+                        Grid.Column="3"
+                        Name="NameBox2" 
+                        Text="{Binding Path=Name.TranslatedText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                        IsReadOnly="True"
+                        MaxLength="20"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                    />
+                    <Button 
+                        Grid.Column="4"
+                        HorizontalAlignment="Right" 
+                        Content="Add new line" 
+                        VerticalAlignment="Center" 
+                        Margin="0,0,10,0" 
+                        Click="AddNewLineClick"
+                    />
+                </Grid>
+                <ListView Grid.Row="1" Name="LinesList">
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Insert new line:">
+                                <MenuItem Header="Before" Click="InsertNewLineBeforeClick"/>
+                                <MenuItem Header="After" Click="InsertNewLineAfterClick"/>
+                            </MenuItem>
+                            <MenuItem Header="Delete" Click="DeleteLineClick"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBox 
+                                    Grid.Column="0"
+                                DockPanel.Dock="Left" 
+                                Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextChanged="TextChanged"
+                                    IsReadOnly="True"
+                                MaxLength="40"
+                                MinWidth="100px" 
+                                HorizontalAlignment="Left"
+                            />
+                                <TextBox 
+                                    Grid.Column="1"
+                                DockPanel.Dock="Left" 
+                                Text="{Binding Path=TranslatedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                TextChanged="TextChanged"
+                                MaxLength="40"
+                                MinWidth="100px" 
+                                HorizontalAlignment="Left"
+                            />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</controls:MetroWindow>

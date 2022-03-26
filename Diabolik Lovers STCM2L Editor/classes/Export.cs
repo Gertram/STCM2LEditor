@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Diabolik_Lovers_STCM2L_Editor.utils;
+using STCM2L.utils;
 
-namespace Diabolik_Lovers_STCM2L_Editor.classes {
+namespace STCM2L.classes {
     public class Export {
         public string Name { get; set; }
         public UInt32 Address { get; set; }
