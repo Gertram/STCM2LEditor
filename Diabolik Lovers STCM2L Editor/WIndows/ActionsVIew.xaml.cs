@@ -1,80 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using STCM2LEditor.classes.Action;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-using STCM2L.classes;
+using System.ComponentModel;
+using STCM2LEditor.classes;
 
-namespace STCM2L
+namespace STCM2LEditor
 {
     /// <summary>
     /// Логика взаимодействия для ActionsVIew.xaml
     /// </summary>
     public partial class ActionsView : Window
     {
-        private classes.STCM2L file;
-        internal ActionsView(classes.STCM2L file)
+        public STCM2L File { get; set; }
+        internal ActionsView(STCM2L file)
         {
+
             InitializeComponent();
-            this.file = file;
-            this.file = file;
-            ActionsList.DataContext = file.Actions;
-            ActionsList.ItemsSource = file.Actions;
-            var ind = file.Actions.IndexOf(file.Actions.First(x => x.OpCode == ActionHelpers.ACTION_TEXT || x.OpCode == ActionHelpers.ACTION_NAME));
-            ActionsList.SelectionChanged += ParamsList_SelectionChanged;
-            if (ind == -1) ind = 0; ;
-            var item = ActionsList.Items[ind];
+            File = file;
+            ActionsContainer.DataContext = File;
             
-            var count = 10;
-            if(ind + count >= ActionsList.Items.Count)
-            {
-                ActionsList.ScrollIntoView(item);
-                ActionsList.SelectedItem = item;
-                return;
-            }
-            var topItem = ActionsList.Items[ind + count];
-            ActionsList.ScrollIntoView(topItem);
-            ActionsList.SelectedItem = item;
         }
-        private void DeleteTextClick(object sender, RoutedEventArgs e)
+        private void DeleteActionClick(object sender, RoutedEventArgs e)
         {
-            foreach(classes.DefaultAction item in ActionsList.SelectedItems)
+            foreach (IAction item in ActionsList.SelectedItems)
             {
-                file.Actions.Remove(item);
+                File.Actions.Remove(item);
             }
         }
         private void SelectItem(object sender)
         {
-            if(sender == null)
+            if (sender == null)
             {
-                
-                ParamsList.DataContext = null;
-                ParamsList.ItemsSource = null;
-                Address.DataContext = null;
-                ParamCount.DataContext = null;
-                ExtraData.Text = "";
+                ActionData.DataContext = null;
                 return;
             }
-            var item = sender as classes.DefaultAction;
-            ParamsList.DataContext = item.Parameters;
-            ParamsList.ItemsSource = item.Parameters;
-            Address.DataContext = item;
-            ParamCount.DataContext = item;
-
-            if (item.ExtraData != null)
+           
+            ActionData.DataContext = sender as IAction;
+            /*if (item.ExtraData != null)
 
                 ExtraData.Text = utils.EncodingUtil.encoding.GetString(item.ExtraData).TrimEnd(new char[] { '\0' });
             else
-                ExtraData.Text = "";
+                ExtraData.Text = "";*/
         }
         private void TextsListItemClick(object sender, MouseButtonEventArgs e)
         {
@@ -84,6 +53,49 @@ namespace STCM2L
         private void ParamsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             SelectItem(ActionsList.SelectedItem);
+        }
+
+        private void GotoCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            var address = int.Parse(ActionAddress.Text, System.Globalization.NumberStyles.HexNumber);
+            try
+            {
+                var ind = File.Actions.IndexOf(File.Actions.First(x => x.Address == address));
+                ScrollTo(ind);
+            }
+            catch
+            {
+                
+            }
+        }
+        private void ScrollTo(int ind)
+        {
+            var item = ActionsList.Items[ind];
+            var count = -10;
+            if (ind + count >= ActionsList.Items.Count)
+            {
+                ActionsList.ScrollIntoView(item);
+                ActionsList.SelectedItem = item;
+                return;
+            }
+            var topItem = ActionsList.Items[ind + count];
+            ActionsList.SelectedItem = item;
+            ActionsList.ScrollIntoView(topItem);
+        }
+        private void Root_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var ind = File.Actions.IndexOf(File.Actions.First(x => x.OpCode == ActionHelpers.ACTION_TEXT || x.OpCode == ActionHelpers.ACTION_NAME || x.OpCode == ActionHelpers.ACTION_PLACE));
+
+                if (ind == -1) ind = 0; ;
+                ScrollTo(ind);
+                
+            }
+            catch
+            {
+
+            }
         }
     }
 }

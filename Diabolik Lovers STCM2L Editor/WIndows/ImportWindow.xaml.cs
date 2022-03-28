@@ -1,27 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Win32;
+using STCM2LEditor.classes;
+using System;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.IO;
-using System.Linq.Expressions;
-using System.Xml;
-using Microsoft.Win32;
 using System.Xml.Linq;
-using System.ComponentModel;
 
-using MahApps.Metro.Controls;
-using STCM2L.classes;
-
-namespace STCM2L
+namespace STCM2LEditor
 {
     /// <summary>
     /// Логика взаимодействия для ImportTextWindow.xaml
@@ -30,22 +17,22 @@ namespace STCM2L
     {
         private MainWindow mainWin;
         public BindingList<TextEntity> TranslatedTexts { get; set; } = new BindingList<TextEntity>();
-        public BindingList<TextTranslate> Texts { get; set; }
+        public BindingList<Replic> Texts { get; set; }
         internal ImportWindow(MainWindow win)
         {
             InitializeComponent();
             this.mainWin = win;
-            Texts = win.Translates;
+            Texts = win.Replics;
             TextsList1.DataContext = this;
             TextsList2.DataContext = this;
         }
         private void ScrollTo(int ind, ListView list, ListView lines)
         {
-            if(ind == 0)
+            if (ind == 0)
             {
                 return;
             }
-            if(ind < 0)
+            if (ind < 0)
             {
                 ind = 0;
             }
@@ -75,7 +62,7 @@ namespace STCM2L
             ScrollTo(ind, TextsList2, LinesList2);
             ScrollTo(ind, TextsList1, LinesList1);
 
-            var te = TextsList1.Items[ind] as TextTranslate;
+            var te = TextsList1.Items[ind] as Replic;
 
             NameBox.DataContext = te;
             LinesList1.DataContext = te.Lines;
@@ -89,7 +76,7 @@ namespace STCM2L
         }
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(TextsList2 != null)
+            if (TextsList2 != null)
                 ScrollTo((sender as ListView).SelectedIndex);
         }
 
@@ -102,9 +89,9 @@ namespace STCM2L
                     return;
                 }
             }
-            for(var i = 0;i < mainWin.Translates.Count; i++)
+            for (var i = 0; i < mainWin.Replics.Count; i++)
             {
-                var fragment = mainWin.Translates[i];
+                var fragment = mainWin.Replics[i];
                 try
                 {
                     var te = TranslatedTexts[i];
@@ -130,7 +117,7 @@ namespace STCM2L
                         fragment.Lines[j].TranslatedText = te.Lines[j].Text;
                     }
                 }
-                catch(Exception exp)
+                catch (Exception exp)
                 {
                     MessageBox.Show(exp.ToString());
                     return;
@@ -164,7 +151,7 @@ namespace STCM2L
 
         private void InsertLine(int index = -1)
         {
-            (LinesList2.DataContext as TextEntity).AddLine("",index);
+            (LinesList2.DataContext as TextEntity).AddLine("", index);
         }
 
         private void DeleteLineClick(object sender, RoutedEventArgs e)
@@ -193,7 +180,7 @@ namespace STCM2L
                 return;
             }
             var te = new TextEntity();
-            te.Lines.Add(new TextEntity.MyString{Text=""});
+            te.Lines.Add(new TextEntity.MyString { Text = "" });
             if (before)
                 TranslatedTexts.Insert(TextsList2.SelectedIndex, te);
             else
@@ -202,12 +189,12 @@ namespace STCM2L
 
         private void InsertBeforeClick(object sender, RoutedEventArgs e)
         {
-            mainWin.InsertText(TextsList1.SelectedIndex,true);
+            mainWin.InsertText(TextsList1.SelectedIndex, true);
         }
 
         private void InsertAfterClick(object sender, RoutedEventArgs e)
         {
-            mainWin.InsertText(TextsList1.SelectedIndex,false);
+            mainWin.InsertText(TextsList1.SelectedIndex, false);
         }
 
         private void DeleteClick(object sender, RoutedEventArgs e)
@@ -270,14 +257,14 @@ namespace STCM2L
             win.ShowDialog();
             TranslatedTexts.Clear();
             var splitters = new char[] { ' ' };
-            foreach(var text in win.Texts)
+            foreach (var text in win.Texts)
             {
                 var te = new TextEntity();
                 var words = text.Split(splitters);
                 var line = "";
-                foreach(var word in words)
+                foreach (var word in words)
                 {
-                    if(line.Length + word.Length >= 40)
+                    if (line.Length + word.Length >= 40)
                     {
                         te.AddLine(line);
                         line = word;
@@ -287,7 +274,7 @@ namespace STCM2L
                         line += " " + word;
                     }
                 }
-                if(line.Length > 0)
+                if (line.Length > 0)
                 {
                     te.AddLine(line);
                 }
@@ -302,7 +289,7 @@ namespace STCM2L
 
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            
+
         }
 
         private void NewLineCommand(object sender, ExecutedRoutedEventArgs e)

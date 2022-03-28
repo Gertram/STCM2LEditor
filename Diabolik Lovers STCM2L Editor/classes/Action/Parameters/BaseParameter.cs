@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using STCM2LEditor.utils;
 
-using STCM2L.utils;
-
-namespace STCM2L.classes
+namespace STCM2LEditor.classes.Action.Parameters
 {
-    internal abstract class BaseParameter:IParameter
+    internal abstract class BaseParameter : IParameter
     {
         public virtual uint Value1 { get; set; } = 0xff000000;
         public virtual uint Value2 { get; set; } = 0xff000000;

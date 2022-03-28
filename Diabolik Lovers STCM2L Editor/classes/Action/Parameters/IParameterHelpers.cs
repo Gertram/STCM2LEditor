@@ -1,4 +1,4 @@
-﻿namespace STCM2L.classes
+﻿namespace STCM2LEditor.classes.Action.Parameters
 {
     internal static class IParameterHelpers
     {

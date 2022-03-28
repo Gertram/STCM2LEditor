@@ -1,24 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.IO;
-using System.Linq.Expressions;
-using System.Xml;
-using Microsoft.Win32;
-using System.Xml.Linq;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
-namespace STCM2L.classes
+namespace STCM2LEditor.classes
 {
     public class TextEntity
     {
@@ -35,7 +17,7 @@ namespace STCM2L.classes
             Name = name;
             Lines = lines;
         }
-        public void AddLine(string text = "",int index = -1)
+        public void AddLine(string text = "", int index = -1)
         {
             if (index == -1)
             {

@@ -1,32 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Windows.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using STCM2LEditor.classes;
+using System;
 using System.Globalization;
-using STCM2L.classes;
+using System.Windows.Data;
 
-namespace STCM2L
+namespace STCM2LEditor
 {
-    internal class TranslateConverter:IValueConverter
+    internal class TranslateConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return value;
-            if (!(value is TranslateData))
+            if (value is IString param)
             {
-                return null;
-            }
-            var translate = value as TranslateData;
-            var text = translate.OriginalText;
-            if (translate.TranslatedText != "")
-            {
-                text += $" ({translate.TranslatedText})";
+                var text = param.OriginalText;
+                if (param.TranslatedText != "")
+                {
+                    text += $" ({param.TranslatedText})";
+                }
+
+                return text;
             }
 
-            return text;
+            return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -1,7 +1,7 @@
-﻿<Application x:Class="STCM2L.App"
+﻿<Application x:Class="STCM2LEditor.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:STCM2L"
+             xmlns:local="clr-namespace:STCM2LEditor"
              StartupUri="Windows/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>

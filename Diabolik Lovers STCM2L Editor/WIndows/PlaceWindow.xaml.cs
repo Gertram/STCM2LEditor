@@ -1,32 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using STCM2LEditor.classes.Action;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.ComponentModel;
-using STCM2L.classes;
 
-namespace STCM2L
+namespace STCM2LEditor
 {
     /// <summary>
     /// Логика взаимодействия для PlaceWindow.xaml
     /// </summary>
-    public partial class PlaceWindow : Window,Findable
+    public partial class PlaceWindow : Window, Findable
     {
         public bool find(string text)
         {
             for (var i = 0; i < places.Count; i++)
             {
                 var place = places[i];
-                if(place.OriginalName.Contains(text)||place.TranslatedName.Contains(text))
+                if (place.OriginalName.Contains(text) || place.TranslatedName.Contains(text))
                 {
                     if (i + 10 < places.Count)
                         TextsList.ScrollIntoView(TextsList.Items[i + 10]);
@@ -41,66 +32,32 @@ namespace STCM2L
         }
         class Place
         {
-            public string OriginalName { get => Translate.OriginalText; }
-            public string TranslatedName { get => Translate.TranslatedText; set=>Translate.TranslatedText = value; }
-            public TranslateData Translate { get; set; }
+            public string OriginalName => Actions.First().OriginalText;
+            public string TranslatedName
+            {
+                get => Actions.First().TranslatedText;
+                set
+                {
+                    foreach (var action in Actions)
+                    {
+                        action.TranslatedText = value;
+                    }
+                }
+            }
+            public BindingList<IStringAction> Actions { get; set; } = new BindingList<IStringAction>();
         }
-        private BindingList<Place> places;
+        private readonly BindingList<Place> places = new BindingList<Place>();
         internal PlaceWindow(classes.STCM2L file)
         {
             InitializeComponent();
-            this.places = new BindingList<Place>();
-            var places = new Dictionary<string,List<ActionProxy>>();
-            foreach (var action in file.DefaultActions)
-            {
-                if(action.OpCode == ActionHelpers.ACTION_PLACE)
-                {
-                    var param = action.Parameters[3] as LocalParameter;
-                    var data = new StringData(param.ParameterData);
-                    param.ParameterData = data;
-                    var text = data.Text;
-                    
-                    if (!places.TryGetValue(text, out List<ActionProxy> list))
-                    {
 
-                        list = new List<ActionProxy>();
-                        places.Add(text, list);
-                        //list.Add(new ActionOriginal { Action = action, Original = data });
-                    }
-                    if (file.Translates.All(x => x.TranslatedText != text))
-                    {
-                        //list.Add(new ActionOriginal { Action = action, Original = data });
-                    }
-                }
-            }
-            var size = file.Translates.Count;
-            foreach (var place in places)
+            foreach (var place in file.PlaceActions)
             {
-                var found = false;
-                for(var i = 0;i < size;i++)
-                {
-                    var translate = file.Translates[i];
-                    if (translate.OriginalText == place.Key)
-                    {
-                        found = true;
-                        this.places.Add(new Place { Translate = translate });
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    if(place.Value.Count == 0)
-                    {
-                        Console.WriteLine("WTF");
-                    }
-                    /*var translate = new TranslateData("", place.Value);
-                    this.places.Add(new Place { Translate=translate});
-                    file.Translates.Add(translate);*/
-                }
+                places.Add(new Place { Actions = place.Value });
             }
-            
-            TextsList.DataContext = this.places;
-            TextsList.ItemsSource = this.places;
+
+            TextsList.DataContext = places;
+            TextsList.ItemsSource = places;
             TextsList.SelectionChanged += TextsList_SelectionChanged;
         }
 
@@ -111,13 +68,13 @@ namespace STCM2L
             var place = places[ind];
             NameBox1.DataContext = place;
             NameBox2.DataContext = place;
-            if(places[ind].TranslatedName == "" && (bool)Autotranslate.IsChecked)
+            if (place.TranslatedName == "" && (bool)Autotranslate.IsChecked)
             {
-                NameBox2.Text = ClassTranslator.TranslateText(places[ind].OriginalName);
+                NameBox2.Text = ClassTranslator.TranslateText(place.OriginalName);
                 NameBox2.Text = NameBox2.Text.Substring(0, 1).ToUpper() + NameBox2.Text.Substring(1);
             }
-            LinesList.ItemsSource = place.Translate.Actions;
-            LinesList.DataContext = place.Translate.Actions;
+            LinesList.ItemsSource = place.Actions;
+            LinesList.DataContext = place.Actions;
         }
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -126,7 +83,7 @@ namespace STCM2L
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-           
+
         }
 
         private void FindCommand(object sender, ExecutedRoutedEventArgs e)

@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Windows.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using STCM2LEditor.classes.Action.Parameters;
+using System;
 using System.Globalization;
-
-namespace STCM2L
+using System.Windows.Data;
+namespace STCM2LEditor
 {
-    internal class ActionAddressConverter : IValueConverter
+    internal class ParameterLengthConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return value;
-            return $"{(value as classes.DefaultAction).Address:X}";
+            var param = value as IParameter;
+            return $"{param.Length:X}";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

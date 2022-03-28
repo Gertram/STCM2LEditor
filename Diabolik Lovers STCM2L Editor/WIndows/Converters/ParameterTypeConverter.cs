@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Windows.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using STCM2LEditor.classes.Action.Parameters;
+using System;
 using System.Globalization;
+using System.Windows.Data;
 
-
-namespace STCM2L 
+namespace STCM2LEditor
 {
     internal class ParameterTypeConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return value;
-            if (value is classes.LocalParameter)
+            if (value is LocalParameter || value is StringParameter)
             {
                 return "Локальный";
             }
-            if (value is classes.GlobalParameter)
+            if (value is GlobalParameter)
             {
                 return "Глобальный";
             }

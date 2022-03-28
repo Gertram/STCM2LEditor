@@ -1,11 +1,11 @@
-﻿<Window x:Class="STCM2L.ImportWindow"
+﻿<Window x:Class="STCM2LEditor.ImportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Name="root"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:STCM2L"
-        xmlns:classes="clr-namespace:STCM2L.classes" d:DataContext="{d:DesignInstance Type=classes:Line}"
+        xmlns:local="clr-namespace:STCM2LEditor"
+        xmlns:classes="clr-namespace:STCM2LEditor.classes" 
         mc:Ignorable="d"
         Title="ImportTextWindow" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
     <Window.CommandBindings>

@@ -1,10 +1,11 @@
-﻿<controls:MetroWindow x:Class="STCM2L.MainWindow"
+﻿<controls:MetroWindow
+    x:Class="STCM2LEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-        xmlns:local="clr-namespace:STCM2L"
+        xmlns:local="clr-namespace:STCM2LEditor"
         mc:Ignorable="d"
         Title="STCM2L Editor"  Height="720" Width="1280"   
          WindowStartupLocation="CenterScreen"
@@ -20,6 +21,7 @@
         <CommandBinding Command="local:WindowCommands.PlaceView" Executed="PlaceWindowCommand"/>
         <CommandBinding Command="local:WindowCommands.NameView" Executed="NameWindowCommand"/>
         <CommandBinding Command="local:WindowCommands.Pack" Executed="PackCommand"/>
+        <CommandBinding Command="local:WindowCommands.GamePreset" Executed="GamePresetCommand"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+O" Command="Open"/>
@@ -53,7 +55,12 @@
                 <MenuItem Header="_Places" Command="local:WindowCommands.PlaceView"/>
                 <MenuItem Header="_Names" Command="local:WindowCommands.NameView"/>
             </MenuItem>
-            <MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>
+            <!--<MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>-->
+            <MenuItem Header="_Games">
+                <MenuItem Header="_Diabolic Lovers PSP" Command="local:WindowCommands.GamePreset" CommandParameter="0"/>
+                <MenuItem Header="_Yunohana" Command="local:WindowCommands.GamePreset" CommandParameter="1"/>
+                <MenuItem Header="_Diabolik Lovers Lineage" Command="local:WindowCommands.GamePreset" CommandParameter="2"/>
+            </MenuItem>
         </Menu>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -62,7 +69,13 @@
                 <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-                <ListView Name="TextsList" BorderBrush="#00000000">
+                <ListView 
+                    VirtualizingStackPanel.IsVirtualizing="True" 
+                    VirtualizingPanel.IsContainerVirtualizable="True"
+                    ScrollViewer.CanContentScroll="True"
+                    Name="TextsList"
+                    ItemsSource="{Binding Path=Replics}"
+                    BorderBrush="#00000000">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new text:">

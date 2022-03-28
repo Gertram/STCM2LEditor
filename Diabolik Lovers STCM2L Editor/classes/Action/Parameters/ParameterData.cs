@@ -1,16 +1,12 @@
-﻿using System;
+﻿using STCM2LEditor.utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using STCM2L.utils;
-
-namespace STCM2L.classes
+namespace STCM2LEditor.classes.Action.Parameters
 {
     public partial class ParameterData : IParameterData
     {
-        const int headerLength = sizeof(int) * 4;
         private int address;
 
         public int Address
@@ -24,7 +20,7 @@ namespace STCM2L.classes
         public IReadOnlyList<byte> ExtraData { get; set; }
         public uint Type { get; private set; }
         public uint Value { get; private set; }
-        public int Length => headerLength + AlignedLength;
+        public int Length => ParameterDataHelpers.HEADER_LENGTH + AlignedLength;
 
         public int DataLength => ExtraData.Count;
 
@@ -36,7 +32,7 @@ namespace STCM2L.classes
             Value = dataVal3;
             ExtraData = extraData;
         }
-        protected ParameterData(){ }
+        protected ParameterData() { }
         internal ParameterData(IParameterData data)
         {
             address = data.Address;
@@ -44,19 +40,20 @@ namespace STCM2L.classes
             Value = data.Value;
             ExtraData = data.ExtraData;
         }
-        internal ParameterData(byte[] file, ref int seek)
+        internal ParameterData(byte[] file, int address)
         {
             try
             {
-                Type = ByteUtil.ReadUInt32Ref(file, ref seek);
-                var offset = ByteUtil.ReadInt32Ref(file, ref seek) * sizeof(uint);//количество sizeof(int) слов
-                Value = ByteUtil.ReadUInt32Ref(file, ref seek);
-                var strLength = ByteUtil.ReadUInt32Ref(file, ref seek);
-                ExtraData = ByteUtil.ReadBytesRef(file, offset, ref seek);
+                Address = address;
+                Type = ByteUtil.ReadUInt32Ref(file, ref address);
+                var offset = ByteUtil.ReadInt32Ref(file, ref address) * sizeof(uint);//количество sizeof(int) слов
+                Value = ByteUtil.ReadUInt32Ref(file, ref address);
+                var strLength = ByteUtil.ReadUInt32Ref(file, ref address);
+                ExtraData = ByteUtil.ReadBytesRef(file, offset, ref address);
             }
             catch
             {
-                Console.WriteLine($"{seek:X}");
+                Console.WriteLine($"{address:X}");
             }
         }
         public byte[] Write()

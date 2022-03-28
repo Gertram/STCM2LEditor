@@ -100,27 +100,37 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="WIndows\Converters\ActionAddressConverter.cs" />
+    <Compile Include="classes\Action\ActionHeader.cs" />
+    <Compile Include="classes\Action\IStringAction.cs" />
+    <Compile Include="classes\Action\NameAction.cs" />
+    <Compile Include="classes\Action\Parameters\ParameterDataHelpers.cs" />
+    <Compile Include="classes\Action\TextAction.cs" />
+    <Compile Include="classes\Action\BaseStrignAction.cs" />
+    <Compile Include="classes\Action\PlaceAction.cs" />
+    <Compile Include="classes\Action\Parameters\StringParameter.cs" />
+    <Compile Include="classes\IString.cs" />
+    <Compile Include="classes\NullString.cs" />
+    <Compile Include="classes\STCM2LHelpers.cs" />
+    <Compile Include="WIndows\Converters\ActionExtraData.cs" />
+    <Compile Include="WIndows\Converters\IntHexConverter.cs" />
+    <Compile Include="WIndows\Converters\ActionParametersSum.cs" />
     <Compile Include="WIndows\Converters\ActionNameConverter.cs" />
     <Compile Include="WIndows\ActionsVIew.xaml.cs">
       <DependentUpon>ActionsVIew.xaml</DependentUpon>
     </Compile>
-    <Compile Include="classes\BaseParameter.cs" />
+    <Compile Include="classes\Action\Parameters\BaseParameter.cs" />
     <Compile Include="classes\Global.cs" />
-    <Compile Include="classes\GlobalParameter.cs" />
-    <Compile Include="classes\GlobalStatus.cs" />
-    <Compile Include="classes\IAction.cs" />
-    <Compile Include="classes\ActionHelpers.cs" />
-    <Compile Include="classes\IParameter.cs" />
-    <Compile Include="classes\IParameterData.cs" />
-    <Compile Include="classes\IParameterHelpers.cs" />
-    <Compile Include="classes\Line.cs" />
-    <Compile Include="classes\LocalParameter.cs" />
-    <Compile Include="classes\ParameterData.cs" />
+    <Compile Include="classes\Action\Parameters\GlobalParameter.cs" />
+    <Compile Include="classes\Action\IAction.cs" />
+    <Compile Include="classes\Action\ActionHelpers.cs" />
+    <Compile Include="classes\Action\Parameters\IParameter.cs" />
+    <Compile Include="classes\Action\Parameters\IParameterData.cs" />
+    <Compile Include="classes\Action\Parameters\IParameterHelpers.cs" />
+    <Compile Include="classes\Action\Parameters\LocalParameter.cs" />
+    <Compile Include="classes\Action\Parameters\ParameterData.cs" />
+    <Compile Include="WIndows\Converters\ParameterLengthConverter.cs" />
     <Compile Include="WIndows\Converters\ParamterExtraTextConverter.cs" />
-    <Compile Include="classes\ProxyData.cs" />
-    <Compile Include="classes\StringData.cs" />
-    <Compile Include="classes\TranslateData.cs" />
+    <Compile Include="classes\Action\Parameters\StringData.cs" />
     <Compile Include="classes\TextEntity.cs" />
     <Compile Include="WIndows\FindDialog.xaml.cs">
       <DependentUpon>FindDialog.xaml</DependentUpon>
@@ -134,7 +144,6 @@
     <Compile Include="WIndows\NamesView.xaml.cs">
       <DependentUpon>NamesView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="classes\NullTranslateData.cs" />
     <Compile Include="WIndows\Converters\ParameterTextConverter.cs" />
     <Compile Include="WIndows\Converters\ParameterTypeConverter.cs" />
     <Compile Include="WIndows\Converters\ParamterExtraValueConverter.cs" />
@@ -142,7 +151,7 @@
       <DependentUpon>PlaceWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="WIndows\Converters\TranslateConverter.cs" />
-    <Compile Include="classes\TextTranslate.cs" />
+    <Compile Include="classes\Replic.cs" />
     <Compile Include="classes\Translator.cs" />
     <Compile Include="utils\ByteUtil.cs" />
     <Compile Include="utils\EncodingUtil.cs" />
@@ -171,9 +180,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="classes\DefaultAction.cs" />
+    <Compile Include="classes\Action\DefaultAction.cs" />
     <Compile Include="classes\Export.cs" />
-    <Compile Include="classes\Parameter.cs" />
+    <Compile Include="classes\Action\Parameters\Parameter.cs" />
     <Compile Include="classes\STCM2L.cs" />
     <Compile Include="WIndows\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

@@ -1,54 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
-
-using System.Windows.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using STCM2LEditor.classes;
+using STCM2LEditor.classes.Action;
+using System;
 using System.Globalization;
+using System.Windows.Data;
 
-using STCM2L.classes;
-
-namespace STCM2L
+namespace STCM2LEditor
 {
     internal class ActionNameConverter : IValueConverter
     {
+        private string GetName(IAction action)
+        {
+            IString data;
+            if (action.OpCode == ActionHelpers.ACTION_PLACE)
+            {
+                data = action as IString;
+                if (data.TranslatedText != "")
+                    return $"Place {data.TranslatedText}";
+                else
+                    return $"Place {data.OriginalText}";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_NAME)
+            {
+                data = action as IString;
+                if (data.TranslatedText != "")
+                    return $"Name {data.TranslatedText}";
+                else
+                    return $"Name {data.OriginalText}";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_TEXT)
+            {
+                data = action as IString;
+                if (data.TranslatedText != "")
+                    return $"Text {data.TranslatedText}";
+                else
+                    return $"Text {data.OriginalText}";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_DIVIDER)
+            {
+                return "Divider";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_SHOW_PLACE)
+            {
+                return "Show Place";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_NEW_PAGE)
+            {
+                return "Show New Page";
+            }
+            else if (action.OpCode == ActionHelpers.ACTION_CHOICE)
+            {
+                return "Choice";
+            }
+                return $"Unknown ({action.OpCode:X})";
+            
+        }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return value;
-            var action = (classes.DefaultAction)value;
-            ProxyData data;
-            switch (action.OpCode)
+            if(value is IAction action)
             {
-                case classes.ActionHelpers.ACTION_PLACE:
-                    data = ((action.Parameters[3] as LocalParameter).ParameterData as ProxyData);
-                    if(data.Translate.Text != "")
-                        return $"Place {data.Translate.Text}";
-                    else
-                        return $"Place {data.Original.Text}";
-                case classes.ActionHelpers.ACTION_NAME:
-                    data = ((action.Parameters[0] as LocalParameter).ParameterData as ProxyData);
-                    if (data.Translate.Text != "")
-                        return $"Name {data.Translate.Text}";
-                    else
-                        return $"Name {data.Original.Text}";
-                case classes.ActionHelpers.ACTION_TEXT:
-                    data = ((action.Parameters[0] as LocalParameter).ParameterData as ProxyData);
-                    if (data.Translate.Text != "")
-                        return $"Text {data.Translate.Text}";
-                    else
-                        return $"Text {data.Original.Text}";
-                case classes.ActionHelpers.ACTION_DIVIDER:
-                    return "Divider";
-                case classes.ActionHelpers.ACTION_SHOW_PLACE:
-                    return "Show Place";
-                case classes.ActionHelpers.ACTION_NEW_PAGE:
-                    return "Show New Page";
-                case classes.ActionHelpers.ACTION_CHOICE:
-                    return "Choice";
-                default:
-                    return $"Unknown ({action.OpCode})";
+                var text = GetName(action);
+                if (action.IsLocalCall == 1)
+                {
+                    text += $" LC";
+                }
+                return text;
             }
+            return value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

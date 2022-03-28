@@ -1,35 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using STCM2LEditor.classes.Action;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.ComponentModel;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-using STCM2L.classes;
-
-namespace STCM2L
+namespace STCM2LEditor
 {
+
+    class Name
+    {
+        public string OriginalName => Actions.First().OriginalText;
+        public string TranslatedName
+        {
+            get => Actions.First().TranslatedText;
+            set
+            {
+                foreach (var action in Actions)
+                {
+                    action.TranslatedText = value;
+                }
+            }
+        }
+        public BindingList<IStringAction> Actions { get; set; } = new BindingList<IStringAction>();
+    }
     /// <summary>
     /// Логика взаимодействия для NamesView.xaml
     /// </summary>
+
     public partial class NamesView : Window, Findable
     {
         public bool find(string text)
         {
-            for (var i = 0; i < namesTranslate.Count; i++)
+            for (var i = 0; i < names.Count; i++)
             {
-                var name = namesTranslate[i];
-                if (name.OriginalText.Contains(text) || name.TranslatedText.Contains(text))
+                var name = names[i];
+                if (name.OriginalName.Contains(text) || name.TranslatedName.Contains(text))
                 {
-                    if (i + 10 < namesTranslate.Count)
+                    if (i + 10 < names.Count)
                         TextsList.ScrollIntoView(TextsList.Items[i + 10]);
                     else
                         TextsList.ScrollIntoView(name);
@@ -40,73 +48,19 @@ namespace STCM2L
             }
             return false;
         }
-        
-        private BindingList<TranslateData> namesTranslate = new BindingList<TranslateData>();
+
+
+        private readonly BindingList<Name> names = new BindingList<Name>();
         internal NamesView(classes.STCM2L file)
         {
             InitializeComponent();
-            var names = new Dictionary<string, List<DefaultAction>>();
-            foreach (var action in file.DefaultActions)
+            foreach (var name in file.NameActions)
             {
-                if (action.OpCode == ActionHelpers.ACTION_NAME)
-                {
-                    var param = action.Parameters[0] as LocalParameter;
-                    var data2 = new StringData("");
-                    //var data = new ProxyData(new StringData(param.ParameterData), data2);
-                    //param.ParameterData = data;
-                    var text = (new StringData(param.ParameterData)).Text;
-                    if (!names.TryGetValue(text, out var list))
-                    {
-                        list = new List<DefaultAction>();
-                        names.Add(text, list);
-                        list.Add(action);
-                    }
-                    else if (file.Translates.All(x => x.TranslatedText != text))
-                    {
-                        list.Add(action);
-                    }
-                }
-            }
-            var size = file.Translates.Count;
-            foreach (var name in names)
-            {
-                var found = false;
-                for (var i = 0; i < size; i++)
-                {
-                    var translate = file.Translates[i];
-                    if (translate.OriginalText == name.Key)
-                    {
-                        found = true;
-                        namesTranslate.Add(translate);
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    if (name.Value.Count == 0)
-                    {
-                        Console.WriteLine("WTF");
-                    }
-                    var data2 = new StringData("");
-                    
-                    var _actions = new List<ActionProxy>();
-                    foreach (var action in name.Value)
-                    {
-                        var param = action.Parameters[0] as LocalParameter;
-                        var data = new ProxyData(new StringData(param.ParameterData), data2);
-                        param.ParameterData = data;
-                        _actions.Add(new ActionProxy { Action = action, Proxy = data });
-                    }
-            
-                    var translate = new TranslateData(data2, _actions);
-
-                    namesTranslate.Add(translate);
-                    file.Translates.Add(translate);
-                }
+                names.Add(new Name { Actions = name.Value });
             }
 
-            TextsList.DataContext = namesTranslate;
-            TextsList.ItemsSource = namesTranslate;
+            TextsList.DataContext = names;
+            TextsList.ItemsSource = names;
             TextsList.SelectionChanged += TextsList_SelectionChanged;
         }
 
@@ -114,12 +68,12 @@ namespace STCM2L
         {
             if (ind < 0) return;
 
-            var translate = namesTranslate[ind];
+            var translate = names[ind];
             NameBox1.DataContext = translate;
             NameBox2.DataContext = translate;
-            if (namesTranslate[ind].TranslatedText == "" && (bool)Autotranslate.IsChecked)
+            if (names[ind].TranslatedName == "" && (bool)Autotranslate.IsChecked)
             {
-                NameBox2.Text = ClassTranslator.TranslateText(namesTranslate[ind].OriginalText);
+                NameBox2.Text = ClassTranslator.TranslateText(names[ind].OriginalName);
                 NameBox2.Text = NameBox2.Text.Substring(0, 1).ToUpper() + NameBox2.Text.Substring(1);
             }
             LinesList.ItemsSource = translate.Actions;

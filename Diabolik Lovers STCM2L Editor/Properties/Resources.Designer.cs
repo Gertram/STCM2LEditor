@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace STCM2L.Properties {
+namespace STCM2LEditor.Properties {
     using System;
     
     

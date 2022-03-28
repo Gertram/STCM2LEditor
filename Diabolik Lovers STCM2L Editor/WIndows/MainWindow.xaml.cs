@@ -1,30 +1,22 @@
-﻿using Microsoft.Win32;
+﻿using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using STCM2LEditor.classes.Action;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.IO;
 using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
 
-using STCM2L.classes;
-using MahApps.Metro.Controls;
-
-namespace STCM2L
+namespace STCM2LEditor
 {
     public partial class MainWindow : MetroWindow
     {
-        internal BindingList<TextTranslate> Translates { get; set; }
+        public BindingList<Replic> Replics { get; set; } = new BindingList<Replic>();
         internal classes.STCM2L Stcm2l { get; set; }
         private bool ShouldSave = false;
 
@@ -32,9 +24,15 @@ namespace STCM2L
         {
             InitializeComponent();
             Closing += OnClose;
+            
             //var dir = Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
             try
             {
+                var gamePreset = ConfigurationManager.AppSettings["LastGamePreset"];
+                if (gamePreset != null && gamePreset != "")
+                {
+                    SetGamePreset(gamePreset);
+                }
                 var lastFile = ConfigurationManager.AppSettings["lastFile"];
                 OpenFile(lastFile);
             }
@@ -45,20 +43,20 @@ namespace STCM2L
         }
         internal void DeleteText(int index)
         {
-            var translate = Translates[index];
-            translate.DeleteFrom(Stcm2l);
-            Translates.RemoveAt(index);
+            var replic = Replics[index];
+            Stcm2l.DeleteReplic(replic);
+            Replics.RemoveAt(index);
         }
-        internal void InsertText(int index,bool before)
+        internal void InsertText(int index, bool before)
         {
-            var translate = Translates[index];
+            var replic = Replics[index];
             if (before)
             {
-                Translates.Insert(index,translate.Insert(Stcm2l,before));
+                Replics.Insert(index, Stcm2l.NewReplic(replic, before));
             }
             else
             {
-                Translates.Insert(index+1,translate.Insert(Stcm2l,before));
+                Replics.Insert(index + 1, Stcm2l.NewReplic(replic, before));
             }
             ShouldSave = true;
         }
@@ -175,51 +173,27 @@ namespace STCM2L
                 try
                 {
                     OpenFile(openFileDialog.FileName);
-                }catch(Exception exp)
+                }
+                catch (Exception exp)
                 {
                     MessageBox.Show(exp.ToString());
                 }
             }
         }
-        private TranslateData MakeTranslate(DefaultAction action,bool insert = false)
-        {
-            foreach (var translate in Stcm2l.Translates)
-            {
-                foreach(var _action in translate.Actions)
-                {
-                    if(_action.Action == action)
-                    {
-                        return translate;
-                    }
-                }
-            }
-            var param = action.Parameters[0] as LocalParameter;
-            var data2 = new StringData("");
-            var data = new ProxyData(new StringData(param.ParameterData),data2);
-            param.ParameterData = data;
-            var _actions = new List<ActionProxy>
-            {
-                new ActionProxy { Action = action, Proxy = data }
-            };
-            var _translate = new TranslateData(data2, _actions);
-            if(insert)
-                Stcm2l.Translates.Add(_translate);
-            return _translate;
-        }
-        private void MakeTexts()
+        private void NakeReplics()
         {
             var actions = Stcm2l.Actions;
-            TextTranslate text = null;
-            Translates = new BindingList<TextTranslate>();
+            Replic text = null;
+            Replics.Clear();
             for (var i = 0; i < actions.Count; i++)
             {
                 var action = actions[i];
 
                 while (action.OpCode == ActionHelpers.ACTION_NAME || action.OpCode == ActionHelpers.ACTION_TEXT)
                 {
-                    if(text == null)
+                    if (text == null)
                     {
-                        text = new TextTranslate();
+                        text = new Replic();
                     }
                     if (action.OpCode == ActionHelpers.ACTION_NAME)
                     {
@@ -227,19 +201,22 @@ namespace STCM2L
                         {
                             throw new Exception("WTF");
                         }
-                        text.Name = MakeTranslate(action as DefaultAction);
+                        text.Name = action as IStringAction;
                     }
                     else if (action.OpCode == ActionHelpers.ACTION_TEXT)
                     {
-                        var temp = MakeTranslate(action as DefaultAction,true);
-                        text.Lines.Add(temp);
+                        text.Lines.Add(action as IStringAction);
                     }
                     i++;
                     action = actions[i];
                 }
-                if(text != null)
+                if (text != null)
                 {
-                    Translates.Add(text);
+                    if(text.Lines.Count == 0)
+                    {
+                        text.AddLine(Stcm2l);
+                    }
+                    Replics.Add(text);
                     text = null;
                 }
             }
@@ -254,10 +231,8 @@ namespace STCM2L
             if (Stcm2l.Load())
             {
                 AddUpdateAppSettings("lastFile", path);
-                MakeTexts();
-
-                TextsList.DataContext = Translates;
-                TextsList.ItemsSource = Translates;
+                NakeReplics();
+                TextsList.DataContext = this;
 
                 LinesList.DataContext = null;
                 LinesList.ItemsSource = null;
@@ -312,7 +287,7 @@ namespace STCM2L
                     ShouldSave = false;
                 }
             }
-            catch(Exception exp) 
+            catch (Exception exp)
             {
                 MessageBox.Show(exp.ToString());
             }
@@ -362,8 +337,9 @@ namespace STCM2L
 
         private void InsertLine(int index = -1)
         {
-            var translate = LinesList.DataContext as TextTranslate;
-            if (translate != null) {
+            var translate = LinesList.DataContext as Replic;
+            if (translate != null)
+            {
                 translate.AddLine(Stcm2l, index);
                 ShouldSave = true;
             }
@@ -372,7 +348,7 @@ namespace STCM2L
         private void DeleteLineClick(object sender, RoutedEventArgs e)
         {
             int index = LinesList.SelectedIndex;
-            ((sender as MenuItem).DataContext as TextTranslate).DeleteLine(Stcm2l,index);
+            ((sender as MenuItem).DataContext as Replic).DeleteLine(Stcm2l, index);
             ShouldSave = true;
         }
 
@@ -388,13 +364,13 @@ namespace STCM2L
 
         private void InsertNewText(bool before)
         {
-            InsertText(TextsList.SelectedIndex,before);
+            InsertText(TextsList.SelectedIndex, before);
         }
 
         private void DeleteTextClick(object sender, RoutedEventArgs e)
         {
             DeleteText(TextsList.SelectedIndex);
-            
+
 
             LinesList.DataContext = null;
             LinesList.ItemsSource = null;
@@ -430,43 +406,88 @@ namespace STCM2L
 
         private void PackCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            var inputDir = ConfigurationManager.AppSettings["input_dir"];
-            var csvPath = ConfigurationManager.AppSettings["CSVPath"];
-            var cpkMakerPath = ConfigurationManager.AppSettings["cpkmaker_path"];
-            var cpkPath = ConfigurationManager.AppSettings["CPKPath"];
-            var ebootPath = ConfigurationManager.AppSettings["eboot_path"];
-            var output = ConfigurationManager.AppSettings["output"];
-            var ultraISOPath = ConfigurationManager.AppSettings["ultraiso_path"];
-            var writer = new StreamWriter(File.OpenWrite(csvPath));
+            var inputDir = ConfigurationManager.AppSettings["INPUT_DIR"];
+            var csvPath = ConfigurationManager.AppSettings["CSV_PATH"];
+            var cpkMakerPath = ConfigurationManager.AppSettings["CPKMAKER_PATH"];
+            var cpkPath = ConfigurationManager.AppSettings["CPK_PATH"];
+            var ebootPath = ConfigurationManager.AppSettings["EBOOT_PATH"];
+            var output = ConfigurationManager.AppSettings["ISO_FILE"];
+            var ultraISOPath = ConfigurationManager.AppSettings["ULTRAISO_PATH"];
+            var writer = new StreamWriter(csvPath, false);
             int i = 0;
-            foreach(var file in Directory.EnumerateFiles(inputDir,"*",SearchOption.AllDirectories))
+            foreach (var file in Directory.EnumerateFiles(inputDir, "*", SearchOption.AllDirectories))
             {
-                var localName = file.Substring(inputDir.Length + 1).Replace("\\","/");
+                var localName = file.Substring(inputDir.Length + 1).Replace("\\", "/");
                 var fileName = file.Replace("\\", "/");
-                writer.WriteLine(@"{0},{1},{2},Uncompress", fileName,localName,i);
+                writer.WriteLine(@"{0},{1},{2},Uncompress", fileName, localName, i);
                 i++;
             }
             writer.Close();
 
-            var cmd = string.Format("\"{0}\" \"{1}\" -mode=FILENAME",csvPath,cpkPath);
+            var cmd = string.Format("\"{0}\" \"{1}\" -mode=FILENAME", csvPath, cpkPath);
 
-            var result = CMD(cpkMakerPath, cmd);
+            CMD(cpkMakerPath, cmd);
 
-            cmd = string.Format("-in \"{0}\" -chdir \"/PSP_GAME/INSDIR\" -f \"{1}\" -chdir \"/PSP_GAME/SYSDIR\" -f \"{2}\"", output, cpkPath, ebootPath);
+            cmd = string.Format(" -in \"{0}\" -chdir \"/PSP_GAME/INSDIR\" -f \"{1}\" -chdir \"/PSP_GAME/SYSDIR\" -f \"{2}\"", output, cpkPath, ebootPath);
 
-            result = CMD(ultraISOPath, cmd);
-            MessageBox.Show("Done");
+            CMD(ultraISOPath, cmd);
+            //MessageBox.Show("Done");
         }
-        private string CMD(string filename,string arguments)
+        private void CMD(string filename, string arguments)
         {
-            var processInfo = new ProcessStartInfo(filename, arguments);
-            processInfo.RedirectStandardOutput = true;
-            processInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            processInfo.UseShellExecute = false;
-            processInfo.CreateNoWindow = true;
-            var process = Process.Start(processInfo);
 
-            return process.StandardOutput.ReadToEnd();
+            var processInfo = new ProcessStartInfo(filename, arguments)
+            {
+                RedirectStandardOutput = false,
+                WindowStyle = ProcessWindowStyle.Normal,
+                UseShellExecute = true,
+                CreateNoWindow = false
+            };
+            var process = Process.Start(processInfo);
+            process.WaitForExit();
+        }
+        private void SetGamePreset(string id)
+        {
+            if (id == "0")
+            {
+                ActionHelpers.ACTION_NAME = 0xd4;
+                ActionHelpers.ACTION_TEXT = 0xd2;
+                ActionHelpers.ACTION_CHOICE = 0xe7;
+                ActionHelpers.ACTION_DIVIDER = 0xd3;
+                ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
+                ActionHelpers.ACTION_PLACE = 0x79d0;
+                ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+            }
+            else if (id == "1")
+            {
+                ActionHelpers.ACTION_NAME = 0x4B074;
+                ActionHelpers.ACTION_TEXT = 0x4A29C;
+                //ActionHelpers.ACTION_CHOICE = 0xe7;
+                ActionHelpers.ACTION_DIVIDER = 0x4AF94;
+               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
+                //ActionHelpers.ACTION_PLACE = 0x79d0;
+                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+            }
+            else if (id == "2")
+            {
+                //ActionHelpers.ACTION_NAME = 0x4B074;
+                ActionHelpers.ACTION_TEXT = 0x4ba;
+                //ActionHelpers.ACTION_CHOICE = 0xe7;
+                ActionHelpers.ACTION_DIVIDER = 0x4bb;
+               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
+                //ActionHelpers.ACTION_PLACE = 0x79d0;
+                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+            }
+            if(Stcm2l != null)
+            {
+                OpenFile(Stcm2l.FilePath);
+            }
+            AddUpdateAppSettings("LastGamePreset", id);
+
+        }
+        private void GamePresetCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            SetGamePreset(e.Parameter as string);
         }
     }
 }

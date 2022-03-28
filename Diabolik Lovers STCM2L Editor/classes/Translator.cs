@@ -1,27 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
-using System.Xml.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.IO;
-using System.ComponentModel;
-using System.Net;
-using System.Web;
-using System.Net.Http;
 using System.Collections;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Web.Script.Serialization;
 
-namespace STCM2L
+namespace STCM2LEditor
 {
     class ClassTranslator
     {
@@ -60,7 +43,7 @@ namespace STCM2L
                     translation += string.Format(" {0}", Convert.ToString(translationLineString.Current));
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return "";
             }
