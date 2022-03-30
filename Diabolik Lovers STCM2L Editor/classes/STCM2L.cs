@@ -27,7 +27,7 @@ namespace STCM2LEditor.classes
         {
             var actionInd = Actions.IndexOf(action);
             var textInd = TextActions.IndexOf(action);
-            var textAction = new TextAction();
+            var textAction = action.Copy();
             if (!before)
             {
                 actionInd++;
@@ -71,10 +71,10 @@ namespace STCM2LEditor.classes
                 insertInd = Actions.IndexOf(replic.Lines.Last()) + 2;
             }
 
-            IString name;
+            IStringAction name = null;
             if (replic.Name is IStringAction nameAction)
             {
-                var temp = new NameAction(replic.Name.OriginalText, replic.Name.TranslatedText);
+                var temp = replic.Name.Copy();
                 if (NameActions.TryGetValue(replic.Name.OriginalText, out var list))
                 {
                     var ind = Actions.IndexOf(nameAction);
@@ -92,7 +92,6 @@ namespace STCM2LEditor.classes
             }
             else
             {
-                name = new NullString();
                 string messageBoxCaption = "New page";
                 string messageBoxText = "Do you want to create a new page?";
                 MessageBoxButton button = MessageBoxButton.YesNo;
@@ -108,7 +107,7 @@ namespace STCM2LEditor.classes
                     insertInd++;
                 }
             }
-            var text = new TextAction();
+            var text = replic.Lines.First().Copy();
             if (before)
             {
                 TextActions.Insert(TextActions.IndexOf(replic.Lines.First()), text);
@@ -199,6 +198,14 @@ namespace STCM2LEditor.classes
             WriteActions();
             WriteExports();
             WriteCollectionLink();
+
+            /*for(int i = 0;i < OriginalFile.Length; i++)
+            {
+                if (OriginalFile[i] != NewFile[i])
+                {
+                    //Console.WriteLine("Im't heere");
+                }
+            }*/
 
             File.WriteAllBytes(filePath, NewFile.ToArray());
             return true;

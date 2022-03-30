@@ -16,6 +16,7 @@ namespace STCM2LEditor
             GamePreset = new RoutedCommand("GamePreset", typeof(MainWindow));
             PlaceView = new RoutedCommand("PlaceView", typeof(MainWindow));
             NameView = new RoutedCommand("NameView", typeof(MainWindow));
+            InsertTrash = new RoutedCommand("InsertTrash", typeof(MainWindow));
             Find = new RoutedCommand("Find", typeof(MainWindow));
             Goto = new RoutedCommand("Goto", typeof(MainWindow));
         }
@@ -24,6 +25,7 @@ namespace STCM2LEditor
         public static RoutedCommand ImportFromXML { get; set; }
         public static RoutedCommand ImportFromText { get; set; }
         public static RoutedCommand GamePreset { get; set; }
+        public static RoutedCommand InsertTrash { get; set; }
         public static RoutedCommand ActionsView { get; set; }
         public static RoutedCommand NewLine { get; set; }
         public static RoutedCommand PlaceView { get; set; }

@@ -7,7 +7,7 @@ namespace STCM2LEditor
 {
     public class Replic
     {
-        public IString Name { get; set; } = new NullString();
+        public IStringAction Name { get; set; } = null;
         public BindingList<IStringAction> Lines { get; set; } = new BindingList<IStringAction>();
         public void AddLine(classes.STCM2L file, int index = -1)
         {
@@ -17,6 +17,7 @@ namespace STCM2LEditor
                 Lines.Add(action);
                 return;
             }
+            if (Lines.Count == 0) return;
             if (index == -1 || index >= Lines.Count)
             {
                 index = Lines.Count;

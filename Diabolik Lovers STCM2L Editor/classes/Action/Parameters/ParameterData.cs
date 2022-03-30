@@ -17,14 +17,14 @@ namespace STCM2LEditor.classes.Action.Parameters
                 address = value;
             }
         }
-        public IReadOnlyList<byte> ExtraData { get; set; }
+        public byte[] ExtraData { get; set; }
         public uint Type { get; private set; }
         public uint Value { get; private set; }
         public int Length => ParameterDataHelpers.HEADER_LENGTH + AlignedLength;
 
-        public int DataLength => ExtraData.Count;
+        public int DataLength => ExtraData.Length;
 
-        public virtual int AlignedLength => ExtraData.Count;
+        public virtual int AlignedLength => ExtraData.Length;
 
         internal ParameterData(uint dataType, uint dataVal3, byte[] extraData)
         {
@@ -66,6 +66,17 @@ namespace STCM2LEditor.classes.Action.Parameters
             buff = ByteUtil.InsertUint32Ref(buff, Value, ref position);
             buff = ByteUtil.InsertInt32Ref(buff, alignedLength, ref position);
             return ByteUtil.InsertBytesRef(buff, ExtraData.ToArray(), ref position);
+        }
+
+        public IParameterData Copy()
+        {
+            return new ParameterData
+            {
+                Type = Type,
+                Value = Value,
+                Address = Address,
+                ExtraData = ExtraData.Clone() as byte[]
+            };
         }
     }
 }

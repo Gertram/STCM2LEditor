@@ -12,6 +12,7 @@
         BorderBrush="{DynamicResource AccentColorBrush}"
         BorderThickness="1"
  >
+
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenFileCommad"/>
         <CommandBinding Command="Save" Executed="SaveCommand"/>
@@ -20,6 +21,7 @@
         <CommandBinding Command="local:WindowCommands.ActionsView" Executed="ActionsViewCommand"/>
         <CommandBinding Command="local:WindowCommands.PlaceView" Executed="PlaceWindowCommand"/>
         <CommandBinding Command="local:WindowCommands.NameView" Executed="NameWindowCommand"/>
+        <CommandBinding Command="local:WindowCommands.InsertTrash" Executed="InsertTrashCommand"/>
         <CommandBinding Command="local:WindowCommands.Pack" Executed="PackCommand"/>
         <CommandBinding Command="local:WindowCommands.GamePreset" Executed="GamePresetCommand"/>
     </Window.CommandBindings>
@@ -43,6 +45,11 @@
                     Command="Save"
                     InputGestureText="Ctrl+S" 
                 />
+                <MenuItem Header="_Export">
+                    <MenuItem Header="_OriginalText" x:Name="MenuItemExportOriginalText" Click="MenuItemExportOriginalText_Click"/>
+                    <MenuItem Header="_TranslatedText" x:Name="MenuItemExportTranslatedText" Click="MenuItemExportTranslatedText_Click"/>
+                </MenuItem>
+                <MenuItem Header="_ImportText" x:Name="MenuItemImportText" Click="MenuItemImportText_Click"/>
                 <MenuItem 
                     Header="_Save As..." 
                     Command="SaveAs"
@@ -56,11 +63,13 @@
                 <MenuItem Header="_Names" Command="local:WindowCommands.NameView"/>
             </MenuItem>
             <!--<MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>-->
-            <MenuItem Header="_Games">
-                <MenuItem Header="_Diabolic Lovers PSP" Command="local:WindowCommands.GamePreset" CommandParameter="0"/>
+            <MenuItem Header="_Games" x:Name="GamesPresetMenu">
+                <MenuItem Header="_Diabolic Lovers PSP" Command="local:WindowCommands.GamePreset" CommandParameter="0">
+                </MenuItem>
                 <MenuItem Header="_Yunohana" Command="local:WindowCommands.GamePreset" CommandParameter="1"/>
                 <MenuItem Header="_Diabolik Lovers Lineage" Command="local:WindowCommands.GamePreset" CommandParameter="2"/>
             </MenuItem>
+            <MenuItem Header="_Insert Trash" Command="local:WindowCommands.InsertTrash"/>
         </Menu>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -195,4 +204,5 @@
             </Grid>
         </Grid>
     </DockPanel>
+    
 </controls:MetroWindow>

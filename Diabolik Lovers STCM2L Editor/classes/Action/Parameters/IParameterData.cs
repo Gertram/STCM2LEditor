@@ -10,7 +10,8 @@ namespace STCM2LEditor.classes.Action.Parameters
         uint Value { get; }
         int AlignedLength { get; }
         uint Type { get; }
-        IReadOnlyList<byte> ExtraData { get; }
+        byte[] ExtraData { get; set; }
+        IParameterData Copy();
 
         byte[] Write();
     }

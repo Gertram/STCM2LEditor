@@ -58,7 +58,7 @@ namespace STCM2LEditor.classes.Action
         private IReadOnlyList<IParameter> SelfParameters => new List<IParameter> { ID, Par2, Par3 };
         public override IReadOnlyList<IParameter> Parameters => SelfParameters.Concat(base.Parameters).ToList();
 
-        public override byte[] ExtraData => base.ExtraData.Concat(ID.Data.EncodedBytes.Concat(Par2.Data.ExtraData).Concat(Par3.Data.ExtraData)).ToArray();
+        public override byte[] ExtraData => base.ExtraData.Concat(ID.Data.ExtraData.Concat(Par2.Data.ExtraData).Concat(Par3.Data.ExtraData)).ToArray();
 
         protected override void WriteParameters(byte[] main, int position)
         {
@@ -69,6 +69,11 @@ namespace STCM2LEditor.classes.Action
             ByteUtil.InsertBytes(main, Par2.Data.Write(), Par2.Data.Address - Address);
             ByteUtil.InsertBytes(main, Par3.Data.Write(), Par3.Data.Address - Address);
             base.WriteParameters(main, position);
+        }
+
+        public override IStringAction Copy()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

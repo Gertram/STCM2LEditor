@@ -8,19 +8,14 @@ namespace STCM2LEditor.classes.Action
 {
     internal abstract class BaseStringAction : IStringAction
     {
-        private StringParameter Original { get; set; }
+        public StringParameter Original { get; set; }
         private ActionHeader Header { get; set; }
-        private StringData Translated { get; set; }
+        public StringData Translated { get; set; }
         private int address;
         protected BaseStringAction()
         {
-            Original = new StringParameter("");
+            Original = new StringParameter();
             Translated = new StringData();
-        }
-        public BaseStringAction(string original, string translated)
-        {
-            Original = new StringParameter(original);
-            Translated = new StringData(translated);
         }
         public BaseStringAction(StringData original, StringData translated)
             : this(new StringParameter(original), translated, 0)
@@ -80,14 +75,18 @@ namespace STCM2LEditor.classes.Action
 
         public virtual IReadOnlyList<IParameter> Parameters => new List<IParameter> { Original };
 
-        public virtual byte[] ExtraData => Original.Data.EncodedBytes;
+        public virtual byte[] ExtraData => Original.Data.ExtraData;
 
         protected virtual void WriteParameters(byte[] main, int position)
         {
             if (TranslatedText == "")
                 Original.Write(main, ref position);
             else
-                new StringParameter(Translated).Write(main, ref position);
+            {
+                var buf = Original.Copy();
+                buf.Data = Translated;
+                buf.Write(main, ref position);
+            }
             ByteUtil.InsertBytes(main, Original.Data.Write(), Original.Data.Address - Address);
         }
         public byte[] Write()
@@ -117,5 +116,7 @@ namespace STCM2LEditor.classes.Action
                 address += Translated.Length;
             }
         }
+
+        public abstract IStringAction Copy();
     }
 }

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,7 +32,15 @@ namespace STCM2LEditor
                 var gamePreset = ConfigurationManager.AppSettings["LastGamePreset"];
                 if (gamePreset != null && gamePreset != "")
                 {
-                    SetGamePreset(gamePreset);
+                    foreach(var item in GamesPresetMenu.FindChildren<MenuItem>())
+                    {
+                        if((string)item.CommandParameter == gamePreset)
+                        {
+                            SetGamePreset(item,gamePreset);
+                            break;
+                        }
+                    }
+                    
                 }
                 var lastFile = ConfigurationManager.AppSettings["lastFile"];
                 OpenFile(lastFile);
@@ -435,7 +444,7 @@ namespace STCM2LEditor
         }
         private void CMD(string filename, string arguments)
         {
-
+            
             var processInfo = new ProcessStartInfo(filename, arguments)
             {
                 RedirectStandardOutput = false,
@@ -446,7 +455,7 @@ namespace STCM2LEditor
             var process = Process.Start(processInfo);
             process.WaitForExit();
         }
-        private void SetGamePreset(string id)
+        private void SetGamePreset(MenuItem menuItem, string id)
         {
             if (id == "0")
             {
@@ -483,11 +492,124 @@ namespace STCM2LEditor
                 OpenFile(Stcm2l.FilePath);
             }
             AddUpdateAppSettings("LastGamePreset", id);
-
+            foreach (var item in GamesPresetMenu.FindChildren<MenuItem>())
+            {
+                if (item != menuItem)
+                {
+                    item.IsChecked = false;
+                }
+                else
+                {
+                    item.IsChecked = true;
+                }
+            }
         }
         private void GamePresetCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            SetGamePreset(e.Parameter as string);
+            SetGamePreset(e.OriginalSource as MenuItem,e.Parameter as string);
+            
+        }
+
+        private void InsertTrashCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach(var replic in Replics)
+            {
+                foreach(var line in replic.Lines)
+                {
+                    line.TranslatedText = "Some trash translated text here";
+                }
+            }
+        }
+
+        private void MenuItemExportOriginalText_Click(object sender, RoutedEventArgs e)
+        {
+            if (Stcm2l == null)
+            {
+                return;
+            }
+            var sfd = new SaveFileDialog();
+            if (!(bool)sfd.ShowDialog())
+            {
+                return;
+            }
+            var writer = new StreamWriter(sfd.FileName, false);
+            foreach (var item in Replics)
+            {
+                if (item.Name.OriginalText != "")
+                    writer.Write($"{item.Name.OriginalText}:");
+                writer.WriteLine(string.Join("|",item.Lines.Select(x => x.OriginalText)));
+            }
+            writer.Close();
+        }
+
+        private void MenuItemExportTranslatedText_Click(object sender, RoutedEventArgs e)
+        {
+            if (Stcm2l == null)
+            {
+                return;
+            }
+            var sfd = new SaveFileDialog();
+            if (!(bool)sfd.ShowDialog())
+            {
+                return;
+            }
+            var writer = new StreamWriter(sfd.FileName, false);
+            foreach (var item in Replics)
+            {
+                if(item.Name != null)
+                    if (item.Name.TranslatedText != "")
+                        writer.Write($"{item.Name.TranslatedText}:");
+                writer.WriteLine(string.Join("|", item.Lines.Select(x => x.TranslatedText)));
+            }
+            writer.Close();
+        }
+
+        private void MenuItemImportText_Click(object sender, RoutedEventArgs e)
+        {
+            if (Stcm2l == null)
+            {
+                return;
+            }
+            var ofd = new OpenFileDialog();
+            if (!(bool)ofd.ShowDialog())
+            {
+                return;
+            }
+            var reader = new StreamReader(ofd.FileName);
+            var list = new List<string[]>();
+            while (!reader.EndOfStream)
+            {
+                var text = reader.ReadLine().Trim();
+                int index = text.IndexOf(':');
+                if(index >= 0)
+                {
+                    text = text.Substring(0, index + 1).Trim();
+                }
+                list.Add(text.Split(new char[] { '|' }));
+            }
+            reader.Close();
+            if(list.Count != Replics.Count)
+            {
+                MessageBox.Show("Replice count not eq sourc replic count");
+                return;
+            }
+            for(int i = 0;i < list.Count; i++)
+            {
+                var item = list[i];
+                var replic = Replics[i];
+                if(item.Length > replic.Lines.Count)
+                {
+                    for(int j = 0; j < item.Length - replic.Lines.Count; j++)
+                    {
+                        replic.AddLine(Stcm2l);
+                    }
+                }
+                for(int j = 0;j < replic.Lines.Count; j++)
+                {
+                    replic.Lines[j].TranslatedText = item[j];
+                }
+            }
+            
         }
     }
 }

@@ -51,7 +51,7 @@ namespace STCM2LEditor
             {
                 return "Choice";
             }
-                return $"Unknown ({action.OpCode:X})";
+            return $"Unknown ({action.OpCode:X})";
             
         }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -59,7 +59,7 @@ namespace STCM2LEditor
             if(value is IAction action)
             {
                 var text = GetName(action);
-                if (action.IsLocalCall == 1)
+                if (action.LocalCall != null)
                 {
                     text += $" LC";
                 }

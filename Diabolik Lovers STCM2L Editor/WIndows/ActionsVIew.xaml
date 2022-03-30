@@ -13,6 +13,7 @@
     <Window.Resources>
         <local:ActionNameConverter x:Key="ActionNameConverter" />
         <local:IntHexConverter x:Key="IntHexConverter" />
+        <local:ActionLocalCall x:Key="ActionLocalCall" />
         <local:ActionParametersSum x:Key="ActionParametersSum" />
         <local:ActionExtraData x:Key="ActionExtraData" />
         <local:ParameterTypeConverter x:Key="ParameterTypeConverter" />
@@ -103,7 +104,7 @@
                     <Label Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Content="IsLocalCall"/>
                     <Border BorderBrush="Black" Grid.Column="1" BorderThickness="0,0,1,0">
                         <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
-                            <TextBox IsReadOnly="True" Name="IsLocalCall" Text="{Binding Path=IsLocalCall,Mode=OneWay}"/>
+                            <TextBox IsReadOnly="True" Name="IsLocalCall" Text="{Binding Path=LocalCall,Mode=OneWay, Converter={StaticResource ActionLocalCall}}"/>
                         </Border>
                     </Border>
                     <Label Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Content="Length"/>
@@ -178,7 +179,7 @@
                         <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Path=ExtraData.Length, Mode=OneWay, Converter={StaticResource IntHexConverter}}" x:Name="ExtraDataSum"></TextBox>
                     </Grid>
                 </Border>
-                <Border Grid.Row="4" BorderBrush="Black" BorderThickness="1">
+                <Border Grid.Row="5" BorderBrush="Black" BorderThickness="1">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="100"/>

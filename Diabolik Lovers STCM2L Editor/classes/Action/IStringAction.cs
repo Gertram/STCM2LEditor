@@ -4,5 +4,7 @@
     {
         void SetTranslateAddress(ref int address);
         byte[] WriteTranslate();
+
+        IStringAction Copy();
     }
 }
