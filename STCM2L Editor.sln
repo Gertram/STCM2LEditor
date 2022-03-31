@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STCM2L Editor", "Diabolik Lovers STCM2L Editor\STCM2L Editor.csproj", "{9A58B89C-235D-4EBA-8B50-A95122550373}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STCM2L-Editor", "STCM2L-Editor\STCM2L-Editor.csproj", "{9A58B89C-235D-4EBA-8B50-A95122550373}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

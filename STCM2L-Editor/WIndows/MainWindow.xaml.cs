@@ -487,6 +487,16 @@ namespace STCM2LEditor
                 //ActionHelpers.ACTION_PLACE = 0x79d0;
                 //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
             }
+            else if (id == "3")
+            {
+                //ActionHelpers.ACTION_NAME = 0x4B074;
+                ActionHelpers.ACTION_TEXT = 0xcdc4;
+                //ActionHelpers.ACTION_CHOICE = 0xe7;
+                ActionHelpers.ACTION_DIVIDER = 0x1f4;
+               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
+                //ActionHelpers.ACTION_PLACE = 0x79d0;
+                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+            }
             if(Stcm2l != null)
             {
                 OpenFile(Stcm2l.FilePath);

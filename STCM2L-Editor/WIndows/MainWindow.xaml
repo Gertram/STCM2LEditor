@@ -7,10 +7,11 @@
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:STCM2LEditor"
         mc:Ignorable="d"
+        
         Title="STCM2L Editor"  Height="720" Width="1280"   
          WindowStartupLocation="CenterScreen"
         BorderBrush="{DynamicResource AccentColorBrush}"
-        BorderThickness="1"
+        BorderThickness="1" Icon="/WIndows/icon.ico"
  >
 
     <Window.CommandBindings>
@@ -68,6 +69,7 @@
                 </MenuItem>
                 <MenuItem Header="_Yunohana" Command="local:WindowCommands.GamePreset" CommandParameter="1"/>
                 <MenuItem Header="_Diabolik Lovers Lineage" Command="local:WindowCommands.GamePreset" CommandParameter="2"/>
+                <MenuItem Header="_Lost Eden" Command="local:WindowCommands.GamePreset" CommandParameter="3"/>
             </MenuItem>
             <MenuItem Header="_Insert Trash" Command="local:WindowCommands.InsertTrash"/>
         </Menu>
