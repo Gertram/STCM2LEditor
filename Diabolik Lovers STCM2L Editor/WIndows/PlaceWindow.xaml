@@ -68,7 +68,7 @@
                         Grid.Column="2"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center" 
-                        Content="Перевод: "
+                        Content="Translation:"
                     />
                     <TextBox 
                         Grid.Column="3"
@@ -79,7 +79,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
                     />
-                    <CheckBox Name="Autotranslate" Margin="10,0,0,0" Grid.Column="4" Content="Автоперепод" IsChecked="False"/>
+                    <CheckBox Name="Autotranslate" Margin="10,0,0,0" Grid.Column="4" Content="Auto" IsChecked="False"/>
                 </Grid>
                 <ListView Grid.Row="1" Name="LinesList">
                     <ListView.ItemTemplate>

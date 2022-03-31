@@ -13,6 +13,6 @@
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
         <TextBox Margin="0,0,0,5" Grid.Row="0" MaxLength="20" Name="Findable"/>
-        <Button Margin="5,5,5,0" Grid.Row="1" Content="Найти" Click="Button_Click"/>
+        <Button Margin="5,5,5,0" Grid.Row="1" Content="Find" Click="Button_Click"/>
     </Grid>
 </Window>
