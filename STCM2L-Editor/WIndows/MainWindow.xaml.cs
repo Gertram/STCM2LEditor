@@ -1,6 +1,5 @@
 ﻿using MahApps.Metro.Controls;
 using Microsoft.Win32;
-using STCM2LEditor.classes.Action;
 using System;
 using System.ComponentModel;
 using System.Configuration;
@@ -13,23 +12,25 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
+using STCM2LEditor.classes;
+using STCM2LEditor.utils;
+using STCM2LEditor.classes.Action;
+
 namespace STCM2LEditor
 {
     public partial class MainWindow : MetroWindow
     {
         public BindingList<Replic> Replics { get; set; } = new BindingList<Replic>();
-        internal classes.STCM2L Stcm2l { get; set; }
+        internal STCM2L Stcm2l { get; set; }
         private bool ShouldSave = false;
 
         public MainWindow()
         {
             InitializeComponent();
-            Closing += OnClose;
             
-            //var dir = Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
             try
             {
-                var gamePreset = ConfigurationManager.AppSettings["LastGamePreset"];
+                var gamePreset = Config.Get("LastGamePreset");
                 if (gamePreset != null && gamePreset != "")
                 {
                     foreach(var item in GamesPresetMenu.FindChildren<MenuItem>())
@@ -42,7 +43,7 @@ namespace STCM2LEditor
                     }
                     
                 }
-                var lastFile = ConfigurationManager.AppSettings["lastFile"];
+                var lastFile = Config.Get("lastFile");
                 OpenFile(lastFile);
             }
             catch (Exception)
@@ -55,6 +56,7 @@ namespace STCM2LEditor
             var replic = Replics[index];
             Stcm2l.DeleteReplic(replic);
             Replics.RemoveAt(index);
+            ShouldSave = true;
         }
         internal void InsertText(int index, bool before)
         {
@@ -69,30 +71,8 @@ namespace STCM2LEditor
             }
             ShouldSave = true;
         }
-        static void AddUpdateAppSettings(string key, string value)
-        {
-            try
-            {
-                var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                var settings = configFile.AppSettings.Settings;
-                if (settings[key] == null)
-                {
-                    settings.Add(key, value);
-                }
-                else
-                {
-                    settings[key].Value = value;
-                }
-                configFile.Save(ConfigurationSaveMode.Modified);
-                ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
-            }
-            catch (ConfigurationErrorsException)
-            {
-                Console.WriteLine("Error writing app settings");
-            }
-        }
 
-        private void OnClose(object sender, CancelEventArgs e)
+        private void OnClosing(object sender, CancelEventArgs e)
         {
             if (Stcm2l != null && ShouldSave)
             {
@@ -233,35 +213,42 @@ namespace STCM2LEditor
 
         private void OpenFile(string path)
         {
-            Stcm2l = new classes.STCM2L(path);
-
-            Title = Path.GetFileName(path);
-
-            if (Stcm2l.Load())
+            try
             {
-                AddUpdateAppSettings("lastFile", path);
-                NakeReplics();
-                TextsList.DataContext = this;
+                Stcm2l = new STCM2L(path);
 
-                LinesList.DataContext = null;
-                LinesList.ItemsSource = null;
+                Title = Path.GetFileName(path);
 
-                NameBox1.DataContext = null;
-                NameBox2.DataContext = null;
-
-                ShouldSave = false;
-                TextsList.SelectionChanged += TextsList_SelectionChanged;
+                if (Stcm2l.Load())
+                {
+                    Config.Set("lastFile", path);
+                    NakeReplics();
+                    TextsList.DataContext = this;
+                    ReplicWrap.DataContext = null;
+                    ShouldSave = false;
+                }
+                else
+                {
+                    throw new Exception("Invalid File");
+                }
             }
-            else
+            catch(InvalidFileTypeException exp)
             {
-                throw new Exception("Invalid File");
+                MessageBox.Show($"The\"{exp.FileName}\"  file is in an unsupported format","Error");
+            }
+            catch(Exception exp)
+            {
+                MessageBox.Show(exp.ToString());
             }
         }
 
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var item = sender;
-            SelectItem(TextsList.SelectedIndex);
+            if(TextsList.SelectedItem == null)
+            {
+                return;
+            }
+            ReplicWrap.DataContext = TextsList.SelectedItem;
         }
 
         private void SaveAsCommand(object sender, ExecutedRoutedEventArgs e)
@@ -301,34 +288,6 @@ namespace STCM2LEditor
                 MessageBox.Show(exp.ToString());
             }
         }
-        private void SelectItem(int ind)
-        {
-            if (ind < 0 || ind >= TextsList.Items.Count) return;
-            bool temp = ShouldSave;
-            var item = TextsList.Items[ind];
-
-            LinesList.DataContext = item;
-            NameBox1.DataContext = item;
-            NameBox2.DataContext = item;
-
-            Binding binding = new Binding();
-            binding.Path = new PropertyPath("Lines");
-            binding.Source = item;
-            binding.Mode = BindingMode.TwoWay;
-            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-
-            LinesList.SetBinding(ItemsControl.ItemsSourceProperty, binding);
-
-            if (!temp)
-            {
-                ShouldSave = false;
-            }
-        }
-        private void TextsListItemClick(object sender, MouseButtonEventArgs e)
-        {
-            SelectItem(TextsList.SelectedIndex);
-        }
-
         private void AddNewLineClick(object sender, RoutedEventArgs e)
         {
             InsertLine();
@@ -379,15 +338,7 @@ namespace STCM2LEditor
         private void DeleteTextClick(object sender, RoutedEventArgs e)
         {
             DeleteText(TextsList.SelectedIndex);
-
-
-            LinesList.DataContext = null;
-            LinesList.ItemsSource = null;
-
-            NameBox1.DataContext = null;
-            NameBox2.DataContext = null;
-
-            ShouldSave = true;
+            ReplicWrap.DataContext = null;
         }
 
         private void TextChanged(object sender, TextChangedEventArgs e)
@@ -395,22 +346,10 @@ namespace STCM2LEditor
             ShouldSave = true;
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void NameWindowCommand(object sender, ExecutedRoutedEventArgs e)
         {
             var win = new NamesView(Stcm2l);
             win.ShowDialog();
-        }
-
-        private void TextBlock_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            var block = sender as TextBlock;
-            if (block.Text.Length > 20)
-                block.Text = block.Text.Substring(0, 20);
         }
 
         private void PackCommand(object sender, ExecutedRoutedEventArgs e)
@@ -501,7 +440,7 @@ namespace STCM2LEditor
             {
                 OpenFile(Stcm2l.FilePath);
             }
-            AddUpdateAppSettings("LastGamePreset", id);
+            Config.Set("LastGamePreset", id);
             foreach (var item in GamesPresetMenu.FindChildren<MenuItem>())
             {
                 if (item != menuItem)
@@ -620,6 +559,12 @@ namespace STCM2LEditor
                 }
             }
             
+        }
+
+        private void SettingsCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            var win = new Windows.SettingsWindow();
+            win.ShowDialog();
         }
     }
 }

@@ -18,10 +18,12 @@ namespace STCM2LEditor
             NameView = new RoutedCommand("NameView", typeof(MainWindow));
             InsertTrash = new RoutedCommand("InsertTrash", typeof(MainWindow));
             Find = new RoutedCommand("Find", typeof(MainWindow));
+            Settings = new RoutedCommand("Settings", typeof(MainWindow));
             Goto = new RoutedCommand("Goto", typeof(MainWindow));
         }
         public static RoutedCommand Import { get; set; }
         public static RoutedCommand Goto { get; set; }
+        public static RoutedCommand Settings { get; set; }
         public static RoutedCommand ImportFromXML { get; set; }
         public static RoutedCommand ImportFromText { get; set; }
         public static RoutedCommand GamePreset { get; set; }

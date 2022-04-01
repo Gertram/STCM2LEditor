@@ -28,7 +28,7 @@ namespace STCM2LEditor
         }
         private void ScrollTo(int ind, ListView list, ListView lines)
         {
-            if (ind == 0)
+            if (ind == 0 || list.Items.Count == 0)
             {
                 return;
             }
@@ -36,6 +36,7 @@ namespace STCM2LEditor
             {
                 ind = 0;
             }
+
             if (ind >= list.Items.Count)
             {
                 ind = list.Items.Count - 1;
@@ -71,7 +72,7 @@ namespace STCM2LEditor
             if ((bool)AutotranslateCheckbox.IsChecked)
             {
 
-                Autotranslate.Text = ClassTranslator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
+                Autotranslate.Text = Translator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
             }
         }
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -185,6 +186,7 @@ namespace STCM2LEditor
                 TranslatedTexts.Insert(TextsList2.SelectedIndex, te);
             else
                 TranslatedTexts.Insert(TextsList2.SelectedIndex + 1, te);
+            
         }
 
         private void InsertBeforeClick(object sender, RoutedEventArgs e)

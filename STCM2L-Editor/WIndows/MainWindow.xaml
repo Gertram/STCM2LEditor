@@ -7,11 +7,12 @@
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:STCM2LEditor"
         mc:Ignorable="d"
-        
+    Closing="OnClosing"
+        Icon="../icon.ico"
         Title="STCM2L Editor"  Height="720" Width="1280"   
          WindowStartupLocation="CenterScreen"
         BorderBrush="{DynamicResource AccentColorBrush}"
-        BorderThickness="1" Icon="/WIndows/icon.ico"
+        BorderThickness="1"
  >
 
     <Window.CommandBindings>
@@ -24,6 +25,7 @@
         <CommandBinding Command="local:WindowCommands.NameView" Executed="NameWindowCommand"/>
         <CommandBinding Command="local:WindowCommands.InsertTrash" Executed="InsertTrashCommand"/>
         <CommandBinding Command="local:WindowCommands.Pack" Executed="PackCommand"/>
+        <CommandBinding Command="local:WindowCommands.Settings" Executed="SettingsCommand"/>
         <CommandBinding Command="local:WindowCommands.GamePreset" Executed="GamePresetCommand"/>
     </Window.CommandBindings>
     <Window.InputBindings>
@@ -72,6 +74,7 @@
                 <MenuItem Header="_Lost Eden" Command="local:WindowCommands.GamePreset" CommandParameter="3"/>
             </MenuItem>
             <MenuItem Header="_Insert Trash" Command="local:WindowCommands.InsertTrash"/>
+            <MenuItem Header="_Settings" Command="local:WindowCommands.Settings"/>
         </Menu>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -85,6 +88,7 @@
                     VirtualizingPanel.IsContainerVirtualizable="True"
                     ScrollViewer.CanContentScroll="True"
                     Name="TextsList"
+                    SelectionChanged="TextsList_SelectionChanged"
                     ItemsSource="{Binding Path=Replics}"
                     BorderBrush="#00000000">
                     <ListView.ContextMenu>
@@ -111,12 +115,12 @@
                 </ListView>
             </Grid>
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" />
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" x:Name="ReplicWrap">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" DataContext="{Binding Path=Name, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="200"/>
@@ -132,10 +136,8 @@
                     />
                     <TextBox 
                         Grid.Column="1"
-                        Name="NameBox1" 
-                        Text="{Binding Path=Name.OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                         IsReadOnly="True"
-                        MaxLength="20"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
                     />
@@ -147,8 +149,7 @@
                     />
                     <TextBox 
                         Grid.Column="3"
-                        Name="NameBox2" 
-                        Text="{Binding Path=Name.TranslatedText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Text="{Binding Path=TranslatedText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
                         IsReadOnly="True"
                         MaxLength="20"
                         VerticalAlignment="Center"
@@ -163,7 +164,7 @@
                         Click="AddNewLineClick"
                     />
                 </Grid>
-                <ListView Grid.Row="1" Name="LinesList">
+                <ListView Grid.Row="1" ItemsSource="{Binding Path=Lines, Mode=OneWay}" Name="LinesList">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new line:">
@@ -184,7 +185,6 @@
                                     Grid.Column="0"
                                 DockPanel.Dock="Left" 
                                 Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                                TextChanged="TextChanged"
                                     IsReadOnly="True"
                                 MaxLength="40"
                                 MinWidth="100px" 

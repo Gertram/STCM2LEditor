@@ -3,17 +3,46 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Web.Script.Serialization;
+using System.Linq;
 
+using STCM2LEditor.utils;
 namespace STCM2LEditor
 {
-    class ClassTranslator
+    internal static partial class Translator
     {
+        static Translator()
+        {
+            var language = Config.Get("Auto-translate-language");
+            if (language != null)
+            {
+                translateLanguage = int.Parse(language);
+            }
+        }
+        public static IReadOnlyList<string> Languages = new List<string>
+        {
+            "en","ru"
+        };
+        private static int translateLanguage = 1;
+
+        public static int TranslateLanguage
+        {
+            get => translateLanguage;
+            set
+            {
+                if(value < 0 || value >= Languages.Count)
+                {
+                    throw new ArgumentOutOfRangeException("translateLanguage");
+                }
+                Config.Set("Auto-translate-language", value.ToString());
+                translateLanguage = value;
+            }
+        }
         public static string TranslateText(string input)
         {
             // Set the language from/to in the url (or pass it into this function)
             string url = String.Format
             ("https://translate.googleapis.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}",
-             "ja", "ru", Uri.EscapeUriString(input));
+             "ja", Languages[TranslateLanguage], Uri.EscapeUriString(input));
             HttpClient httpClient = new HttpClient();
             string result = httpClient.GetStringAsync(url).Result;
 

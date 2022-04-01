@@ -66,10 +66,16 @@
     <ManifestKeyFile>STCM2L Editor_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
+    <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro, Version=1.5.0.23, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
@@ -137,8 +143,10 @@
     <Compile Include="classes\Action\BaseStrignAction.cs" />
     <Compile Include="classes\Action\PlaceAction.cs" />
     <Compile Include="classes\Action\Parameters\StringParameter.cs" />
+    <Compile Include="classes\InvalidFileType.cs" />
     <Compile Include="classes\IString.cs" />
     <Compile Include="classes\STCM2LHelpers.cs" />
+    <Compile Include="utils\Config.cs" />
     <Compile Include="WIndows\Converters\ActionExtraData.cs" />
     <Compile Include="WIndows\Converters\ActionLocalCall.cs" />
     <Compile Include="WIndows\Converters\IntHexConverter.cs" />
@@ -184,6 +192,9 @@
     <Compile Include="classes\Translator.cs" />
     <Compile Include="utils\ByteUtil.cs" />
     <Compile Include="utils\EncodingUtil.cs" />
+    <Compile Include="WIndows\SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WIndows\WindowCommands.cs" />
     <Page Include="WIndows\ActionsVIew.xaml">
       <SubType>Designer</SubType>
@@ -225,6 +236,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="WIndows\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -245,6 +260,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <None Include="packages.config" />
+    <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -266,7 +282,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="WIndows\icon.ico" />
+    <Resource Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

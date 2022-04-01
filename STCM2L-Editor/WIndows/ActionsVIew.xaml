@@ -90,7 +90,7 @@
                                         Command="local:WindowCommands.Goto"/>
                         </TextBox.InputBindings>
                     </TextBox>
-                    <Button Grid.Column="2" Content="Goto" Command="local:WindowCommands.Goto"/>
+                    <Button Grid.Column="2" Content="Go to" Command="local:WindowCommands.Goto"/>
                 </Grid>
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>

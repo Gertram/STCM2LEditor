@@ -327,6 +327,10 @@ namespace STCM2LEditor.classes
 
         private int FindStart()
         {
+            if(EncodingUtil.encoding.GetString(OriginalFile.Take(6).ToArray()) != "STCM2L")
+            {
+                throw new InvalidFileTypeException(FilePath);
+            }
             byte[] start = EncodingUtil.encoding.GetBytes("CODE_START_");
 
             for (int i = 0; i < 2000; i++)

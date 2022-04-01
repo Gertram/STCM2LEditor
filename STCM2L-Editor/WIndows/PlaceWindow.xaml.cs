@@ -70,7 +70,7 @@ namespace STCM2LEditor
             NameBox2.DataContext = place;
             if (place.TranslatedName == "" && (bool)Autotranslate.IsChecked)
             {
-                NameBox2.Text = ClassTranslator.TranslateText(place.OriginalName);
+                NameBox2.Text = Translator.TranslateText(place.OriginalName);
                 NameBox2.Text = NameBox2.Text.Substring(0, 1).ToUpper() + NameBox2.Text.Substring(1);
             }
             LinesList.ItemsSource = place.Actions;
