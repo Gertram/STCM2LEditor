@@ -2,7 +2,7 @@
 using System.Linq;
 namespace STCM2LEditor.classes.Action.Parameters
 {
-    public class StringData
+    public class StringData:IParameterData
     {
         public uint Type { get; set; }
         public uint Value { get; set; }
@@ -51,10 +51,18 @@ namespace STCM2LEditor.classes.Action.Parameters
         private int AlignedLength => ExtraData.Length % 4 == 0?ExtraData.Length:ExtraData.Length+4-ExtraData.Length % 4;
         public int Length => ParameterDataHelpers.HEADER_LENGTH + AlignedLength;
 
+        public int DataLength => ExtraData.Length;
+
+        int IParameterData.AlignedLength => AlignedLength;
+
         public byte[] Write()
         {
             return (new ParameterData(Type, Value, ByteUtil.InsertBytes(new byte[AlignedLength],ExtraData,0))).Write();
         }
 
+        IParameterData IParameterData.Copy()
+        {
+            return Copy();
+        }
     }
 }

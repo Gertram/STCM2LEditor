@@ -15,36 +15,74 @@ using System.Windows.Input;
 using STCM2LEditor.classes;
 using STCM2LEditor.utils;
 using STCM2LEditor.classes.Action;
+using STCM2LEditor.classes.Action.Parameters;
+using System.Text.Json;
 
 namespace STCM2LEditor
 {
+    public class GamePreset
+    {
+        public string Name { get; set; }
+        public uint TextAction { get; set; }
+        public uint NameAction { get; set; }
+        public uint PlaceAction { get; set; }
+        public uint DividerAction { get; set; }
+    }
     public partial class MainWindow : MetroWindow
     {
         public BindingList<Replic> Replics { get; set; } = new BindingList<Replic>();
         internal STCM2L Stcm2l { get; set; }
         private bool ShouldSave = false;
-
+        public List<GamePreset> GamePresets { get; set; } = new List<GamePreset>();
+        private void LoadGamePresets()
+        {
+            GamePresets = new List<GamePreset>();
+            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
+            if (!dir.Exists)
+            {
+                return;
+            }
+            foreach(var fileInfo in dir.GetFiles())
+            {
+                if(fileInfo.Extension != ".dat")
+                {
+                    continue;
+                }
+                var file = JsonDocument.Parse(fileInfo.OpenRead());
+                GamePreset preset = file.Deserialize<GamePreset>();
+                if (preset != null)
+                {
+                    AddGamePreset(preset);
+                }
+            }
+        }
         public MainWindow()
         {
             InitializeComponent();
-            
+
+            try
+            {
+                LoadGamePresets();
+            }
+            catch
+            {
+
+            }
             try
             {
                 var gamePreset = Config.Get("LastGamePreset");
                 if (gamePreset != null && gamePreset != "")
                 {
-                    foreach(var item in GamesPresetMenu.FindChildren<MenuItem>())
-                    {
-                        if((string)item.CommandParameter == gamePreset)
-                        {
-                            SetGamePreset(item,gamePreset);
-                            break;
-                        }
-                    }
-                    
+                    SetGamePreset(GamePresets.Find(x => x.Name == gamePreset));
                 }
+            }
+            catch { }
+            try { 
                 var lastFile = Config.Get("lastFile");
-                OpenFile(lastFile);
+                if (lastFile != null)
+                {
+                    OpenFile(lastFile);
+                }
             }
             catch (Exception)
             {
@@ -201,7 +239,7 @@ namespace STCM2LEditor
                 }
                 if (text != null)
                 {
-                    if(text.Lines.Count == 0)
+                    if (text.Lines.Count == 0)
                     {
                         text.AddLine(Stcm2l);
                     }
@@ -215,13 +253,15 @@ namespace STCM2LEditor
         {
             try
             {
-                Stcm2l = new STCM2L(path);
+                var temp = new STCM2L(path);
 
                 Title = Path.GetFileName(path);
 
-                if (Stcm2l.Load())
+                if (temp.Load())
                 {
                     Config.Set("lastFile", path);
+                    Stcm2l = temp;
+                    Title = Path.GetFileName(path);
                     NakeReplics();
                     TextsList.DataContext = this;
                     ReplicWrap.DataContext = null;
@@ -232,11 +272,11 @@ namespace STCM2LEditor
                     throw new Exception("Invalid File");
                 }
             }
-            catch(InvalidFileTypeException exp)
+            catch (InvalidFileTypeException exp)
             {
-                MessageBox.Show($"The\"{exp.FileName}\"  file is in an unsupported format","Error");
+                MessageBox.Show($"The\"{exp.FileName}\"  file is in an unsupported format", "Error");
             }
-            catch(Exception exp)
+            catch (Exception exp)
             {
                 MessageBox.Show(exp.ToString());
             }
@@ -244,7 +284,7 @@ namespace STCM2LEditor
 
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(TextsList.SelectedItem == null)
+            if (TextsList.SelectedItem == null)
             {
                 return;
             }
@@ -383,7 +423,7 @@ namespace STCM2LEditor
         }
         private void CMD(string filename, string arguments)
         {
-            
+
             var processInfo = new ProcessStartInfo(filename, arguments)
             {
                 RedirectStandardOutput = false,
@@ -394,56 +434,39 @@ namespace STCM2LEditor
             var process = Process.Start(processInfo);
             process.WaitForExit();
         }
-        private void SetGamePreset(MenuItem menuItem, string id)
+        private void SetGamePreset(GamePreset preset)
         {
-            if (id == "0")
+            if(preset == null)
             {
-                ActionHelpers.ACTION_NAME = 0xd4;
-                ActionHelpers.ACTION_TEXT = 0xd2;
-                ActionHelpers.ACTION_CHOICE = 0xe7;
-                ActionHelpers.ACTION_DIVIDER = 0xd3;
-                ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
-                ActionHelpers.ACTION_PLACE = 0x79d0;
-                ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+                return;
             }
-            else if (id == "1")
+            var id = GamePresets.IndexOf(preset);
+
+            if (preset.NameAction != 0)
             {
-                ActionHelpers.ACTION_NAME = 0x4B074;
-                ActionHelpers.ACTION_TEXT = 0x4A29C;
-                //ActionHelpers.ACTION_CHOICE = 0xe7;
-                ActionHelpers.ACTION_DIVIDER = 0x4AF94;
-               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
-                //ActionHelpers.ACTION_PLACE = 0x79d0;
-                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+                ActionHelpers.ACTION_NAME = preset.NameAction;
             }
-            else if (id == "2")
+            if (preset.TextAction != 0)
             {
-                //ActionHelpers.ACTION_NAME = 0x4B074;
-                ActionHelpers.ACTION_TEXT = 0x4ba;
-                //ActionHelpers.ACTION_CHOICE = 0xe7;
-                ActionHelpers.ACTION_DIVIDER = 0x4bb;
-               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
-                //ActionHelpers.ACTION_PLACE = 0x79d0;
-                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+                ActionHelpers.ACTION_TEXT = preset.TextAction;
             }
-            else if (id == "3")
+            if (preset.PlaceAction != 0)
             {
-                //ActionHelpers.ACTION_NAME = 0x4B074;
-                ActionHelpers.ACTION_TEXT = 0xcdc4;
-                //ActionHelpers.ACTION_CHOICE = 0xe7;
-                ActionHelpers.ACTION_DIVIDER = 0x1f4;
-               // ActionHelpers.ACTION_NEW_PAGE = 0x1c1;
-                //ActionHelpers.ACTION_PLACE = 0x79d0;
-                //ActionHelpers.ACTION_SHOW_PLACE = 0x227c;
+                ActionHelpers.ACTION_PLACE = preset.PlaceAction;
             }
-            if(Stcm2l != null)
+            if (preset.DividerAction != 0)
+            {
+                ActionHelpers.ACTION_DIVIDER = preset.DividerAction;
+            }
+
+            if (Stcm2l != null)
             {
                 OpenFile(Stcm2l.FilePath);
             }
-            Config.Set("LastGamePreset", id);
-            foreach (var item in GamesPresetMenu.FindChildren<MenuItem>())
+            Config.Set("LastGamePreset", preset.Name);
+            foreach (MenuItem item in GamesPresetMenu.Items)
             {
-                if (item != menuItem)
+                if (item != GamesPresetMenu.Items[id])
                 {
                     item.IsChecked = false;
                 }
@@ -455,15 +478,14 @@ namespace STCM2LEditor
         }
         private void GamePresetCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            SetGamePreset(e.OriginalSource as MenuItem,e.Parameter as string);
-            
+            SetGamePreset(e.Parameter as GamePreset);
         }
 
         private void InsertTrashCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            foreach(var replic in Replics)
+            foreach (var replic in Replics)
             {
-                foreach(var line in replic.Lines)
+                foreach (var line in replic.Lines)
                 {
                     line.TranslatedText = "Some trash translated text here";
                 }
@@ -486,7 +508,7 @@ namespace STCM2LEditor
             {
                 if (item.Name.OriginalText != "")
                     writer.Write($"{item.Name.OriginalText}:");
-                writer.WriteLine(string.Join("|",item.Lines.Select(x => x.OriginalText)));
+                writer.WriteLine(string.Join("|", item.Lines.Select(x => x.OriginalText)));
             }
             writer.Close();
         }
@@ -505,7 +527,7 @@ namespace STCM2LEditor
             var writer = new StreamWriter(sfd.FileName, false);
             foreach (var item in Replics)
             {
-                if(item.Name != null)
+                if (item.Name != null)
                     if (item.Name.TranslatedText != "")
                         writer.Write($"{item.Name.TranslatedText}:");
                 writer.WriteLine(string.Join("|", item.Lines.Select(x => x.TranslatedText)));
@@ -530,41 +552,228 @@ namespace STCM2LEditor
             {
                 var text = reader.ReadLine().Trim();
                 int index = text.IndexOf(':');
-                if(index >= 0)
+                if (index >= 0)
                 {
                     text = text.Substring(0, index + 1).Trim();
                 }
                 list.Add(text.Split(new char[] { '|' }));
             }
             reader.Close();
-            if(list.Count != Replics.Count)
+            if (list.Count != Replics.Count)
             {
                 MessageBox.Show("Replice count not eq sourc replic count");
                 return;
             }
-            for(int i = 0;i < list.Count; i++)
+            for (int i = 0; i < list.Count; i++)
             {
                 var item = list[i];
                 var replic = Replics[i];
-                if(item.Length > replic.Lines.Count)
+                if (item.Length > replic.Lines.Count)
                 {
-                    for(int j = 0; j < item.Length - replic.Lines.Count; j++)
+                    for (int j = 0; j < item.Length - replic.Lines.Count; j++)
                     {
                         replic.AddLine(Stcm2l);
                     }
                 }
-                for(int j = 0;j < replic.Lines.Count; j++)
+                for (int j = 0; j < replic.Lines.Count; j++)
                 {
                     replic.Lines[j].TranslatedText = item[j];
                 }
             }
-            
+
         }
 
         private void SettingsCommand(object sender, ExecutedRoutedEventArgs e)
         {
             var win = new Windows.SettingsWindow();
             win.ShowDialog();
+        }
+        class Group
+        {
+            public List<IAction> Actions { get; set; } = new List<IAction>();
+            public int CharCount { get; set; } = 0;
+        }
+        private int CharCount(IAction action)
+        {
+            if (action.Parameters.Count > 0 && action.Parameters[0] is ILocalParameter param)
+            {
+                var str = EncodingUtil.encoding.GetString(param.Data.ExtraData);
+                if(str.Length > 0 && action.OpCode == 22516)
+                {
+                    Console.WriteLine(str);
+                }
+
+                return str.Length;
+            }
+            return 0;
+        }
+        private void TextAnalyzeMenuItme_Click(object sender, RoutedEventArgs e)
+        {
+            if (ShouldSave)
+            {
+                var res = MessageBox.Show("All you changes will be delete. Continue?", "Attention!", MessageBoxButton.YesNo);
+                if (res != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
+            if (Stcm2l == null || Stcm2l.Actions.Count == 0)
+            {
+                return;
+            }
+            var groups = new Dictionary<uint, Group>();
+            foreach (var action in Stcm2l.Actions)
+            {
+                if (groups.TryGetValue(action.OpCode, out var group))
+                {
+                    group.Actions.Add(action);
+                }
+                else
+                {
+                    group = new Group();
+                    group.Actions.Add(action);
+                    groups.Add(action.OpCode,group);
+                }
+                group.CharCount += CharCount(action);
+            }
+            var item = groups.Aggregate((a, b) => a.Value.CharCount < b.Value.CharCount ? b : a);
+            var result = MessageBox.Show($" Elements with id {item.Key:X} may be is text. Continue?","Attention!",MessageBoxButton.YesNo);
+            if(result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            ActionHelpers.ACTION_TEXT = item.Key;
+            for(var i = Stcm2l.Actions.IndexOf(item.Value.Actions[0]); i < Stcm2l.Actions.Count; i++)
+            {
+                var action = Stcm2l.Actions[i];
+                if(action.OpCode != item.Key)
+                {
+                    ActionHelpers.ACTION_DIVIDER = action.OpCode;
+                    
+                    break;
+                }
+            }
+            OpenFile(Stcm2l.FilePath);
+            foreach (MenuItem menu in GamesPresetMenu.Items)
+            {
+                menu.IsChecked = false;
+            }
+        }
+
+        private void AddPresetMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new Windows.GamePresetWindow(GamePresets);
+            if (!(bool)win.ShowDialog())
+            {
+                return;
+            }
+            AddGamePreset(win.GamePreset);
+            SaveGamePreset(win.GamePreset);
+        }
+        private void SaveGamePreset(GamePreset preset)
+        {
+            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
+            if (!dir.Exists)
+            {
+                dir.Create();
+            }
+            var filename = dir.FullName + "\\" + preset.Name + ".dat";
+
+            File.WriteAllText(filename, JsonSerializer.Serialize(preset));
+        }
+        private void AddGamePreset(GamePreset preset)
+        {
+            GamePresets.Add(preset);
+            var menu = new MenuItem
+            {
+                Header = preset.Name,
+              
+            };
+            var editMenu = new MenuItem
+            {
+                Header = "_Edit",
+                CommandParameter = preset
+            };
+            editMenu.Click += EditMenu_Click;
+            var openMenu = new MenuItem
+            {
+                Header = "_Open",
+                Command = new CommandBinding(WindowCommands.GamePreset, GamePresetCommand).Command,
+                CommandParameter = preset
+            };
+            var deleteMenu = new MenuItem
+            {
+                Header = "_Delete",
+                CommandParameter = preset
+            };
+            deleteMenu.Click += DeleteMenu_Click;
+            menu.Items.Add(openMenu);
+            menu.Items.Add(editMenu);
+            menu.Items.Add(deleteMenu);
+            GamesPresetMenu.Items.Insert(GamesPresetMenu.Items.Count - 2, menu);
+        }
+
+        private void DeleteMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if(MessageBox.Show("Game preset will be deleted!\nContinue?", "Attenttion!", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            var preset = (sender as MenuItem).CommandParameter as GamePreset;
+            var ind = GamePresets.IndexOf(preset);
+            GamesPresetMenu.Items.RemoveAt(ind);
+            GamePresets.Remove(preset);
+            DeleteGamePreset(preset);
+        }
+        private void DeleteGamePresetFile(string preset_name)
+        {
+            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
+            var filename = dir.FullName + "\\" + preset_name + ".dat";
+            File.Delete(filename);
+        }
+        private void DeleteGamePreset(GamePreset preset)
+        {
+            DeleteGamePresetFile(preset.Name);
+        }
+        private void EditMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var menu = sender as MenuItem;
+            var win = new Windows.GamePresetWindow(GamePresets)
+            {
+                GamePreset = menu.CommandParameter as GamePreset
+            };
+            var temp = win.GamePreset.Name;
+            win.ShowDialog();
+            SaveGamePreset(win.GamePreset);
+            if (menu.Parent is MenuItem parent)
+            {
+                parent.Header = win.GamePreset.Name;
+            }
+            if(temp != win.GamePreset.Name)
+            {
+                DeleteGamePresetFile(temp);
+            }
+        }
+
+        private void AddPresetByCurrent_Click(object sender, RoutedEventArgs e)
+        {
+            var preset = new GamePreset
+            {
+                NameAction = ActionHelpers.ACTION_NAME,
+                TextAction = ActionHelpers.ACTION_TEXT,
+                PlaceAction = ActionHelpers.ACTION_PLACE,
+                DividerAction = ActionHelpers.ACTION_DIVIDER,
+            };
+            var win = new Windows.GamePresetWindow(GamePresets)
+            {
+                GamePreset = preset
+            };
+            if (!(bool)win.ShowDialog())
+            {
+                return;
+            }
+            AddGamePreset(preset);
+            SaveGamePreset(preset);
         }
     }
 }

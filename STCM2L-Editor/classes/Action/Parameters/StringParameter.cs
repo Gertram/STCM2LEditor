@@ -1,6 +1,6 @@
 ﻿namespace STCM2LEditor.classes.Action.Parameters
 {
-    public class StringParameter : IParameter
+    public class StringParameter : IParameter,ILocalParameter
     {
         private LocalParameter local;
         public StringParameter()
@@ -29,6 +29,8 @@
         public uint Value3 => local.Value3;
 
         public int Length => IParameterHelpers.HEADER_LENGTH + Data.Length;
+
+        IParameterData ILocalParameter.Data { get => Data; }
 
         public void Write(byte[] buffer, ref int seek)
         {

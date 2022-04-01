@@ -10,7 +10,13 @@ namespace STCM2LEditor
         {
             if (value == null) return value;
             var param = value as IParameter;
-            return $"{param.Value1:X} {param.Value2:X} {param.Value3:X}";
+            try
+            {
+                return $"{param.Value1:X} {param.Value2:X} {param.Value3:X}";
+            }catch(Exception exp)
+            {
+                return null;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

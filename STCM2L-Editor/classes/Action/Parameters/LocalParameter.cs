@@ -1,6 +1,6 @@
 ﻿namespace STCM2LEditor.classes.Action.Parameters
 {
-    internal partial class LocalParameter : BaseParameter
+    internal partial class LocalParameter : BaseParameter,ILocalParameter
     {
         public IParameterData Data { get; set; }
         public int DataSeek { get; set; } = 0;

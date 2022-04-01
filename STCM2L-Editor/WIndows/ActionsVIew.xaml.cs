@@ -39,6 +39,7 @@ namespace STCM2LEditor
             }
            
             ActionData.DataContext = sender as IAction;
+            ActionsList.ScrollIntoView(sender);
             /*if (item.ExtraData != null)
 
                 ExtraData.Text = utils.EncodingUtil.encoding.GetString(item.ExtraData).TrimEnd(new char[] { '\0' });

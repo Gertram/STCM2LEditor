@@ -10,49 +10,63 @@ namespace STCM2LEditor
     {
         private string GetName(IAction action)
         {
-            IString data;
-            if (action.OpCode == ActionHelpers.ACTION_PLACE)
+            try
             {
-                data = action as IString;
-                if (data.TranslatedText != "")
-                    return $"Place {data.TranslatedText}";
-                else
-                    return $"Place {data.OriginalText}";
+                IString data;
+                if (action.OpCode == ActionHelpers.ACTION_PLACE)
+                {
+                    data = action as IString;
+                    if (data.TranslatedText != "")
+                        return $"Place {data.TranslatedText}";
+                    else
+                        return $"Place {data.OriginalText}";
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_NAME)
+                {
+                    var text = $"Name ({action.OpCode:X})";
+                    if (action is IStringAction stringAction)
+                    {
+                        if (stringAction.TranslatedText != "")
+                            text += $" {stringAction.TranslatedText}";
+                        else
+                            text += $" {stringAction.OriginalText}";
+                    }
+                    return text;
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_TEXT)
+                {
+                    var text = $"Text ({action.OpCode:X})";
+                    if (action is IStringAction strinAction)
+                    {
+                        if (strinAction.TranslatedText != "")
+                            text += $" {strinAction.TranslatedText}";
+                        else
+                            text+=$" {strinAction.OriginalText}";
+                    }
+                    return text;
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_DIVIDER)
+                {
+                    return "Divider";
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_SHOW_PLACE)
+                {
+                    return "Show Place";
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_NEW_PAGE)
+                {
+                    return "Show New Page";
+                }
+                else if (action.OpCode == ActionHelpers.ACTION_CHOICE)
+                {
+                    return "Choice";
+                }
             }
-            else if (action.OpCode == ActionHelpers.ACTION_NAME)
+            catch
             {
-                data = action as IString;
-                if (data.TranslatedText != "")
-                    return $"Name {data.TranslatedText}";
-                else
-                    return $"Name {data.OriginalText}";
-            }
-            else if (action.OpCode == ActionHelpers.ACTION_TEXT)
-            {
-                data = action as IString;
-                if (data.TranslatedText != "")
-                    return $"Text {data.TranslatedText}";
-                else
-                    return $"Text {data.OriginalText}";
-            }
-            else if (action.OpCode == ActionHelpers.ACTION_DIVIDER)
-            {
-                return "Divider";
-            }
-            else if (action.OpCode == ActionHelpers.ACTION_SHOW_PLACE)
-            {
-                return "Show Place";
-            }
-            else if (action.OpCode == ActionHelpers.ACTION_NEW_PAGE)
-            {
-                return "Show New Page";
-            }
-            else if (action.OpCode == ActionHelpers.ACTION_CHOICE)
-            {
-                return "Choice";
+                
             }
             return $"Unknown ({action.OpCode:X})";
-            
         }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

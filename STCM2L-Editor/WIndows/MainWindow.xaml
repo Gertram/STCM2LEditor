@@ -36,7 +36,7 @@
         <KeyBinding Gesture="Ctrl+Shift+P" Command="local:WindowCommands.Pack"/>
     </Window.InputBindings>
     <DockPanel>
-        <Menu DockPanel.Dock="Top" IsMainMenu="True">
+        <Menu DockPanel.Dock="Top" IsMainMenu="True" x:Name="MainMenu">
             <MenuItem Header="_File">
                 <MenuItem 
                     Header="_Open" 
@@ -67,14 +67,19 @@
             </MenuItem>
             <!--<MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>-->
             <MenuItem Header="_Games" x:Name="GamesPresetMenu">
-                <MenuItem Header="_Diabolic Lovers PSP" Command="local:WindowCommands.GamePreset" CommandParameter="0">
-                </MenuItem>
-                <MenuItem Header="_Yunohana" Command="local:WindowCommands.GamePreset" CommandParameter="1"/>
-                <MenuItem Header="_Diabolik Lovers Lineage" Command="local:WindowCommands.GamePreset" CommandParameter="2"/>
-                <MenuItem Header="_Lost Eden" Command="local:WindowCommands.GamePreset" CommandParameter="3"/>
+                <MenuItem Header="_AddPreset" 
+                          x:Name="AddPresetMenuItem" 
+                          Click="AddPresetMenuItem_Click" 
+                          BorderBrush="{DynamicResource AccentColorBrush}" 
+                          BorderThickness="0,1,0,0"/>
+                <MenuItem Header="_AddPresetByCurrent"
+                          x:Name="AddPresetByCurrent"
+                          Click="AddPresetByCurrent_Click"/>
             </MenuItem>
+            
             <MenuItem Header="_Insert Trash" Command="local:WindowCommands.InsertTrash"/>
             <MenuItem Header="_Settings" Command="local:WindowCommands.Settings"/>
+            <MenuItem Header="_TextAnalyze" x:Name="TextAnalyzeMenuItme" Click="TextAnalyzeMenuItme_Click"/>
         </Menu>
         <Grid>
             <Grid.ColumnDefinitions>

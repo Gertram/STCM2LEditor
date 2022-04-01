@@ -61,7 +61,7 @@ namespace STCM2LEditor.classes.Action
                 }
                 if (header.Length != name.Length)
                 {
-                    throw new Exception("Pizda");
+                    throw new Exception("Action length error");
                 }
                 return name;
             }
@@ -71,7 +71,7 @@ namespace STCM2LEditor.classes.Action
                 stcm2l.TextActions.Add(text);
                 if (header.Length != text.Length)
                 {
-                    throw new Exception("Pizda");
+                    throw new Exception("Action length error");
                 }
                 return text;
             }
@@ -90,7 +90,7 @@ namespace STCM2LEditor.classes.Action
                 }
                 if (header.Length != place.Length)
                 {
-                    throw new Exception("Pizda");
+                    throw new Exception("Action length error");
                 }
                 return place;
             }

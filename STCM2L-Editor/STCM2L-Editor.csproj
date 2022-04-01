@@ -84,6 +84,30 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.6.0.0\lib\net461\Microsoft.Extensions.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.FileExtensions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.FileExtensions.6.0.0\lib\net461\Microsoft.Extensions.Configuration.FileExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Json.6.0.0\lib\net461\Microsoft.Extensions.Configuration.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileProviders.Physical, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileProviders.Physical.6.0.0\lib\net461\Microsoft.Extensions.FileProviders.Physical.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.FileSystemGlobbing, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.FileSystemGlobbing.6.0.0\lib\net461\Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.14.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -92,8 +116,14 @@
     <Reference Include="System.Collections.Immutable, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.6.0.0\lib\net461\System.Collections.Immutable.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
@@ -101,11 +131,34 @@
     <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.6.0.0\lib\net461\System.Text.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
@@ -138,6 +191,7 @@
     <Compile Include="classes\Action\ActionHeader.cs" />
     <Compile Include="classes\Action\IStringAction.cs" />
     <Compile Include="classes\Action\NameAction.cs" />
+    <Compile Include="classes\Action\Parameters\ILocalParameter.cs" />
     <Compile Include="classes\Action\Parameters\ParameterDataHelpers.cs" />
     <Compile Include="classes\Action\TextAction.cs" />
     <Compile Include="classes\Action\BaseStrignAction.cs" />
@@ -147,12 +201,12 @@
     <Compile Include="classes\IString.cs" />
     <Compile Include="classes\STCM2LHelpers.cs" />
     <Compile Include="utils\Config.cs" />
-    <Compile Include="WIndows\Converters\ActionExtraData.cs" />
-    <Compile Include="WIndows\Converters\ActionLocalCall.cs" />
-    <Compile Include="WIndows\Converters\IntHexConverter.cs" />
-    <Compile Include="WIndows\Converters\ActionParametersSum.cs" />
-    <Compile Include="WIndows\Converters\ActionNameConverter.cs" />
-    <Compile Include="WIndows\ActionsVIew.xaml.cs">
+    <Compile Include="Windows\Converters\ActionExtraData.cs" />
+    <Compile Include="Windows\Converters\ActionLocalCall.cs" />
+    <Compile Include="Windows\Converters\IntHexConverter.cs" />
+    <Compile Include="Windows\Converters\ActionParametersSum.cs" />
+    <Compile Include="Windows\Converters\ActionNameConverter.cs" />
+    <Compile Include="Windows\ActionsVIew.xaml.cs">
       <DependentUpon>ActionsVIew.xaml</DependentUpon>
     </Compile>
     <Compile Include="classes\Action\Parameters\BaseParameter.cs" />
@@ -165,54 +219,62 @@
     <Compile Include="classes\Action\Parameters\IParameterHelpers.cs" />
     <Compile Include="classes\Action\Parameters\LocalParameter.cs" />
     <Compile Include="classes\Action\Parameters\ParameterData.cs" />
-    <Compile Include="WIndows\Converters\ParameterLengthConverter.cs" />
-    <Compile Include="WIndows\Converters\ParamterExtraTextConverter.cs" />
+    <Compile Include="Windows\Converters\ParameterLengthConverter.cs" />
+    <Compile Include="Windows\Converters\ParamterExtraTextConverter.cs" />
     <Compile Include="classes\Action\Parameters\StringData.cs" />
     <Compile Include="classes\TextEntity.cs" />
-    <Compile Include="WIndows\FindDialog.xaml.cs">
+    <Compile Include="Windows\FindDialog.xaml.cs">
       <DependentUpon>FindDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\ImportTextWindow.xaml.cs">
+    <Compile Include="Windows\GamePrest.xaml.cs">
+      <DependentUpon>GamePrest.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ImportTextWindow.xaml.cs">
       <DependentUpon>ImportTextWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\ImportWindow.xaml.cs">
+    <Compile Include="Windows\ImportWindow.xaml.cs">
       <DependentUpon>ImportWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\NamesView.xaml.cs">
+    <Compile Include="IniFile.cs" />
+    <Compile Include="Windows\NamesView.xaml.cs">
       <DependentUpon>NamesView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\Converters\ParameterTextConverter.cs" />
-    <Compile Include="WIndows\Converters\ParameterTypeConverter.cs" />
-    <Compile Include="WIndows\Converters\ParamterExtraValueConverter.cs" />
-    <Compile Include="WIndows\PlaceWindow.xaml.cs">
+    <Compile Include="Windows\Converters\ParameterTextConverter.cs" />
+    <Compile Include="Windows\Converters\ParameterTypeConverter.cs" />
+    <Compile Include="Windows\Converters\ParamterExtraValueConverter.cs" />
+    <Compile Include="Windows\PlaceWindow.xaml.cs">
       <DependentUpon>PlaceWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\Converters\TranslateConverter.cs" />
+    <Compile Include="Windows\Converters\TranslateConverter.cs" />
     <Compile Include="classes\Replic.cs" />
     <Compile Include="classes\Translator.cs" />
     <Compile Include="utils\ByteUtil.cs" />
     <Compile Include="utils\EncodingUtil.cs" />
-    <Compile Include="WIndows\SettingsWindow.xaml.cs">
+    <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WIndows\WindowCommands.cs" />
-    <Page Include="WIndows\ActionsVIew.xaml">
+    <Compile Include="Windows\WindowCommands.cs" />
+    <Page Include="Windows\ActionsVIew.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\FindDialog.xaml">
+    <Page Include="Windows\FindDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\ImportTextWindow.xaml">
+    <Page Include="Windows\GamePrest.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\ImportWindow.xaml">
+    <Page Include="Windows\ImportTextWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\MainWindow.xaml">
+    <Page Include="Windows\ImportWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -224,19 +286,19 @@
     <Compile Include="classes\Export.cs" />
     <Compile Include="classes\Action\Parameters\Parameter.cs" />
     <Compile Include="classes\STCM2L.cs" />
-    <Compile Include="WIndows\MainWindow.xaml.cs">
+    <Compile Include="Windows\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="WIndows\NamesView.xaml">
+    <Page Include="Windows\NamesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\PlaceWindow.xaml">
+    <Page Include="Windows\PlaceWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WIndows\SettingsWindow.xaml">
+    <Page Include="Windows\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -285,4 +347,11 @@
     <Resource Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets'))" />
+  </Target>
 </Project>

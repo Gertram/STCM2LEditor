@@ -1,0 +1,34 @@
+﻿<Window x:Class="STCM2LEditor.Windows.GamePresetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:STCM2LEditor.Windows"
+        mc:Ignorable="d"
+        Title="GamePrest" Height="320" Width="400">
+    <Grid VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+        <Label VerticalAlignment="Center" Grid.Column="0" Grid.Row="0" Content="Name"/>
+        <TextBox Grid.Column="1" Margin="10" Grid.Row="0" x:Name="NameTB"/>
+        <Label VerticalAlignment="Center" Grid.Column="0" Grid.Row="1" Content="Name Action"/>
+        <TextBox Grid.Column="1" Margin="10" Grid.Row="1" x:Name="NameActionTB"/>
+        <Label VerticalAlignment="Center" Grid.Column="0" Grid.Row="2" Content="Text Action"/>
+        <TextBox Grid.Column="1" Margin="10" Grid.Row="2" x:Name="TextActionTB"/>
+        <Label VerticalAlignment="Center" Grid.Column="0" Grid.Row="3" Content="Place Action"/>
+        <TextBox Grid.Column="1" Margin="10" Grid.Row="3" x:Name="PlaceActionTB"/>
+        <Label VerticalAlignment="Center" Grid.Column="0" Grid.Row="4" Content="Divider Action"/>
+        <TextBox Grid.Column="1" Margin="10" Grid.Row="4" x:Name="DividerActionTB"/>
+        <Button Grid.Column="1" Margin="10" Width="100" HorizontalAlignment="Right" Click="SaveButton_Click" Content="Save" Grid.Row="5" x:Name="SaveButton"/>
+    </Grid>
+</Window>
