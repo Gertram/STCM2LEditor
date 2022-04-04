@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace STCM2LEditor
@@ -71,8 +72,15 @@ namespace STCM2LEditor
 
             if ((bool)AutotranslateCheckbox.IsChecked)
             {
-
-                Autotranslate.Text = Translator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
+                var task = new Task<string>(delegate
+                {
+                    return Translator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
+                });
+                task.Start();
+                task.GetAwaiter().OnCompleted(delegate
+                {
+                    Autotranslate.Text = task.Result;
+                });
             }
         }
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -302,7 +310,7 @@ namespace STCM2LEditor
             var ind = te.Lines.IndexOf(str) + 1;
             var text = txt.Text.Substring(txt.CaretIndex) + " ";
             txt.Text = txt.Text.Substring(0, txt.CaretIndex);
-            if (te.Lines.Count < ind)
+            if (te.Lines.Count <= ind)
             {
                 te.AddLine();
             }

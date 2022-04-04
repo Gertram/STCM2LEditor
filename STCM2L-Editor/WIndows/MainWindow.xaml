@@ -65,7 +65,7 @@
                 <MenuItem Header="_Places" Command="local:WindowCommands.PlaceView"/>
                 <MenuItem Header="_Names" Command="local:WindowCommands.NameView"/>
             </MenuItem>
-            <!--<MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>-->
+            <MenuItem Header="_Pack" Command="local:WindowCommands.Pack" InputGestureText="Ctrl+Shift+P"/>
             <MenuItem Header="_Games" x:Name="GamesPresetMenu">
                 <MenuItem Header="_AddPreset" 
                           x:Name="AddPresetMenuItem" 

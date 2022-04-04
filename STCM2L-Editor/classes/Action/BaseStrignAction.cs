@@ -12,6 +12,7 @@ namespace STCM2LEditor.classes.Action
         private ActionHeader Header { get; set; }
         public StringData Translated { get; set; }
         private int address;
+        private int par_seek;
         protected BaseStringAction()
         {
             Original = new StringParameter();
@@ -25,6 +26,7 @@ namespace STCM2LEditor.classes.Action
         {
             Original = original;
             Translated = translated;
+            this.par_seek = address - Original.Data.Address;
             this.address = address;
         }
         public string OriginalText { get => Original.Data.Text; set => Original.Data.Text = value; }
@@ -79,15 +81,21 @@ namespace STCM2LEditor.classes.Action
 
         protected virtual void WriteParameters(byte[] main, int position)
         {
-            if (TranslatedText == "")
-                Original.Write(main, ref position);
-            else
+            try
             {
-                var buf = Original.Copy();
-                buf.Data = Translated;
-                buf.Write(main, ref position);
+                if (TranslatedText == "")
+                    Original.Write(main, ref position);
+                else
+                {
+                    var buf = Original.Copy();
+                    buf.Data = Translated;
+                    buf.Write(main, ref position);
+                }
+                ByteUtil.InsertBytes(main, Original.Data.Write(), par_seek);
+            }catch(Exception exp)
+            {
+                throw exp;
             }
-            ByteUtil.InsertBytes(main, Original.Data.Write(), Original.Data.Address - Address);
         }
         public byte[] Write()
         {

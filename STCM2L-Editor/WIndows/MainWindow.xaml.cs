@@ -224,7 +224,7 @@ namespace STCM2LEditor
                     }
                     if (action.OpCode == ActionHelpers.ACTION_NAME)
                     {
-                        if (text.Name.OriginalText != "")
+                        if (text.Name != null && text.Name.OriginalText != "")
                         {
                             throw new Exception("WTF");
                         }
@@ -554,7 +554,7 @@ namespace STCM2LEditor
                 int index = text.IndexOf(':');
                 if (index >= 0)
                 {
-                    text = text.Substring(0, index + 1).Trim();
+                    text = text.Substring(index + 1).Trim();
                 }
                 list.Add(text.Split(new char[] { '|' }));
             }
@@ -575,7 +575,7 @@ namespace STCM2LEditor
                         replic.AddLine(Stcm2l);
                     }
                 }
-                for (int j = 0; j < replic.Lines.Count; j++)
+                for (int j = 0; j < item.Count(); j++)
                 {
                     replic.Lines[j].TranslatedText = item[j];
                 }
