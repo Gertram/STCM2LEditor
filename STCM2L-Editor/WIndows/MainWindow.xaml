@@ -58,6 +58,7 @@
                     Command="SaveAs"
                     InputGestureText="Ctrl+Shift+S"
                 />
+                <MenuItem Header="_ExportFiles" x:Name="ExportFilesMenuItem" Click="ExportFilesMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_Import" Command="local:WindowCommands.Import" InputGestureText="Ctrl+I"/>
             <MenuItem Header="_View">

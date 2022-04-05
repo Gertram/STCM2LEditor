@@ -194,7 +194,7 @@ namespace STCM2LEditor
             }
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-
+            openFileDialog.InitialDirectory = Config.Get("WorkDirectory");
             if (openFileDialog.ShowDialog() == true)
             {
                 try
@@ -207,9 +207,9 @@ namespace STCM2LEditor
                 }
             }
         }
-        private void NakeReplics()
+        private static void NakeReplics(IList<Replic> Replics,STCM2L file)
         {
-            var actions = Stcm2l.Actions;
+            var actions = file.Actions;
             Replic text = null;
             Replics.Clear();
             for (var i = 0; i < actions.Count; i++)
@@ -241,7 +241,7 @@ namespace STCM2LEditor
                 {
                     if (text.Lines.Count == 0)
                     {
-                        text.AddLine(Stcm2l);
+                        text.AddLine(file);
                     }
                     Replics.Add(text);
                     text = null;
@@ -262,7 +262,7 @@ namespace STCM2LEditor
                     Config.Set("lastFile", path);
                     Stcm2l = temp;
                     Title = Path.GetFileName(path);
-                    NakeReplics();
+                    NakeReplics(Replics,Stcm2l);
                     TextsList.DataContext = this;
                     ReplicWrap.DataContext = null;
                     ShouldSave = false;
@@ -568,12 +568,13 @@ namespace STCM2LEditor
             {
                 var item = list[i];
                 var replic = Replics[i];
-                if (item.Length > replic.Lines.Count)
+                for (int j = 0; j < item.Length - replic.Lines.Count; j++)
                 {
-                    for (int j = 0; j < item.Length - replic.Lines.Count; j++)
-                    {
-                        replic.AddLine(Stcm2l);
-                    }
+                    replic.AddLine(Stcm2l);
+                }
+                for (int j = 0; j < replic.Lines.Count - item.Length; j++)
+                {
+                    replic.DeleteLine(Stcm2l);
                 }
                 for (int j = 0; j < item.Count(); j++)
                 {
@@ -774,6 +775,44 @@ namespace STCM2LEditor
             }
             AddGamePreset(preset);
             SaveGamePreset(preset);
+        }
+
+        private void ExportFilesMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog();
+            ofd.Multiselect = true;
+            if (!(bool)ofd.ShowDialog())
+            {
+                return;
+            }
+            var fbd = new System.Windows.Forms.FolderBrowserDialog();
+            fbd.ShowNewFolderButton = true;
+            if(fbd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+            var dir = new DirectoryInfo(fbd.SelectedPath);
+            if (!dir.Exists)
+            {
+                dir.Create();
+            }
+            foreach(var filepath in ofd.FileNames)
+            {
+                var file = new STCM2L(filepath);
+                file.Load();
+                
+                var newpath = Path.Combine(dir.FullName,Path.GetFileNameWithoutExtension(filepath)+".txt");
+                var outfile = new StreamWriter(newpath,false);
+                var replics = new List<Replic>();
+                NakeReplics(replics, file);
+
+                foreach(var replic in replics)
+                {
+                    var text = string.Join("|", replic.Lines.Select(x => x.TranslatedText));
+                    outfile.WriteLine(text);
+                }
+                outfile.Close();
+            }
         }
     }
 }

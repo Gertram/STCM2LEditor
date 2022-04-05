@@ -14,6 +14,18 @@
                     <ComboBox x:Name="TranslateLanguageSelect" SelectionChanged="TranslateLanguageSelect_SelectionChanged" Margin="10,5" DockPanel.Dock="Right"/>
                 </DockPanel>
             </ListViewItem>
+            <ListViewItem Padding="10,0">
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Content="WorkDirectory"/>
+                    <TextBox x:Name="WorkDirectoryTextBox" KeyUp="WorkDirectoryTextBox_KeyUp"/>
+                </DockPanel>
+            </ListViewItem>
+            <ListViewItem Padding="10,0">
+                <DockPanel>
+                    <Label VerticalAlignment="Center" DockPanel.Dock="Left" Content="EngTextDirectory"/>
+                    <TextBox x:Name="EngTextDirectoryTextBox" KeyUp="EngTextDirectoryTextBox_KeyUp"/>
+                </DockPanel>
+            </ListViewItem>
         </ListView>
     </Grid>
 </Window>

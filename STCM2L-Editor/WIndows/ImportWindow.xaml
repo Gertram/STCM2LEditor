@@ -24,17 +24,22 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="150"></ColumnDefinition>
+                <ColumnDefinition Width="200"></ColumnDefinition>
                 <ColumnDefinition Width="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Menu Grid.Column="0" IsMainMenu="True" >
                 <MenuItem Header="_Import">
                     <MenuItem Header="_XML" Command="local:WindowCommands.ImportFromXML" InputGestureText="Ctrl+Shift+X"/>
-                    <MenuItem Header="_Text" Command="local:WindowCommands.ImportFromText" InputGestureText="Ctrl+Shift+T"/>
+                    <MenuItem Header="_Text" >
+                        <MenuItem Header="_NotFormatted" Command="local:WindowCommands.ImportFromText"/>
+                        <MenuItem Header="_Formatted" Click="MenuItem_Click"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="TextView" Command="local:WindowCommands.TextView" InputGestureText="Ctrl+T"/>
             </Menu>
-            <CheckBox Grid.Column="1" Content="Auto translate" Name="AutotranslateCheckbox" IsChecked="True"></CheckBox>
-            <Button Grid.Column="2" Content="Save" Click="Button_Click"></Button>
+            <CheckBox Grid.Column="1" Content="Imported auto translate" Name="ImportedTrsnalteCheckbox" IsChecked="False"></CheckBox>
+            <CheckBox Grid.Column="2" Content="Auto translate" Name="AutotranslateCheckbox" IsChecked="True"></CheckBox>
+            <Button Grid.Column="3" Content="Save" Click="Button_Click"></Button>
         </Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -79,7 +84,7 @@
                     </ListView.ContextMenu>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].Text}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].Text,Mode=OneWay}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -89,6 +94,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="40"/>
                 </Grid.RowDefinitions>
@@ -127,7 +133,7 @@
                         <DataTemplate>
                             <TextBox 
                                 DockPanel.Dock="Left" 
-                                Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{Binding Path=OriginalText, Mode=OneWay}"
                                 IsReadOnly="True"
                                 MaxLength="40"
                                 MinWidth="100px" 
@@ -136,7 +142,10 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <ListView Grid.Row="2" Name="LinesList2" ItemsSource="{Binding Path=Lines}" BorderBrush="Black">
+                <Border Grid.Row="2" BorderBrush="Black" BorderThickness="0.75">
+                    <TextBox IsReadOnly="True" x:Name="Autotranslate"></TextBox>
+                </Border>
+                <ListView Grid.Row="3" Name="LinesList2" ItemsSource="{Binding Path=Lines}" BorderBrush="Black">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new line:">
@@ -148,23 +157,35 @@
                     </ListView.ContextMenu>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBox 
-                                DockPanel.Dock="Left" 
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Name="textBox"
                                 Text="{Binding Mode=TwoWay,Path=Text, UpdateSourceTrigger=PropertyChanged}"
+                                KeyUp="TextBox_KeyUp"
                                 MaxLength="40"
                                 MinWidth="100px" 
                                 HorizontalAlignment="Left"
                             >
-                                <TextBox.InputBindings>
-                                    <KeyBinding Key="ENTER" Modifiers="Shift" Command="local:WindowCommands.NewLine" CommandParameter="{Binding ElementName=root, Path=(FocusManager.FocusedElement)}"/>
-                                </TextBox.InputBindings>
-                            </TextBox>
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="ENTER" Modifiers="Shift" Command="local:WindowCommands.NewLine" CommandParameter="{Binding ElementName=root, Path=(FocusManager.FocusedElement)}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <TextBox Grid.Column="1" MaxLength="40" 
+                                         Text="{Binding Path=TranslationOption,Mode=TwoWay,
+                                                        UpdateSourceTrigger=PropertyChanged}"/>
+                            </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <Border Grid.Row="3" BorderBrush="Black" BorderThickness="0.75">
-                    <TextBlock x:Name="Autotranslate"></TextBlock>
-                </Border>
+                <Button Grid.Row="4" Width="100" HorizontalAlignment="Right"
+                        IsEnabled="{Binding ElementName=ImportedTrsnalteCheckbox,Path=IsChecked}"
+                        x:Name="ApplyTranslateButton"
+                        Click="ApplyTranslateButton_Click"
+                        Content="Apply" />
             </Grid>
         </Grid>
     </DockPanel>

@@ -5,8 +5,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows.Input;
+using STCM2LEditor.utils;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Xml.Linq;
 
 namespace STCM2LEditor
@@ -19,6 +23,7 @@ namespace STCM2LEditor
         private MainWindow mainWin;
         public BindingList<TextEntity> TranslatedTexts { get; set; } = new BindingList<TextEntity>();
         public BindingList<Replic> Texts { get; set; }
+        public bool ShouldSave { get; private set; } = false;
         internal ImportWindow(MainWindow win)
         {
             InitializeComponent();
@@ -29,7 +34,7 @@ namespace STCM2LEditor
         }
         private void ScrollTo(int ind, ListView list, ListView lines)
         {
-            if (ind == 0 || list.Items.Count == 0)
+            if (list.Items.Count == 0)
             {
                 return;
             }
@@ -52,7 +57,7 @@ namespace STCM2LEditor
                 list.ScrollIntoView(list.Items[ind + pad]);
             }
             list.SelectedIndex = ind;
-            var item = list.Items[ind] as classes.TextEntity;
+            var item = list.Items[ind] as TextEntity;
             lines.DataContext = item;
         }
         private void ScrollTo(int ind)
@@ -64,22 +69,54 @@ namespace STCM2LEditor
             ScrollTo(ind, TextsList2, LinesList2);
             ScrollTo(ind, TextsList1, LinesList1);
 
-            var te = TextsList1.Items[ind] as Replic;
+            var replic = TextsList1.Items[ind] as Replic;
 
-            NameBox.DataContext = te;
-            LinesList1.DataContext = te.Lines;
-            LinesList1.ItemsSource = te.Lines;
+            NameBox.DataContext = replic;
+            LinesList1.DataContext = replic.Lines;
+            LinesList1.ItemsSource = replic.Lines;
 
             if ((bool)AutotranslateCheckbox.IsChecked)
             {
-                var task = new Task<string>(delegate
+                Autotranslate.Text = "Loading...";
+                var task = Task.Run(delegate
                 {
-                    return Translator.TranslateText(string.Join("", te.Lines.Select(x => x.OriginalText)));
+                    return Translator.TranslateText(string.Join("", replic.Lines.Select(x => x.OriginalText)));
                 });
-                task.Start();
                 task.GetAwaiter().OnCompleted(delegate
                 {
                     Autotranslate.Text = task.Result;
+                });
+            }
+            if ((bool)ImportedTrsnalteCheckbox.IsChecked)
+            {
+                var te = TranslatedTexts[ind];
+                foreach (var line in te.Lines)
+                {
+                    line.TranslationOption = "Loading...";
+                }
+                var task = Task.Run(delegate
+                {
+                    var translate= Translator.TranslateText(string.Join(" ", te.Lines.Select(x => x.Text)));
+                    return SplitText(translate);
+                });
+                task.GetAwaiter().OnCompleted(delegate
+                {
+                    var texts = task.Result;
+                    for( int i = 0;i < texts.Count - te.Lines.Count;i++)
+                    {
+                        te.AddLine();
+                    }
+                    for (int i = 0; i < te.Lines.Count; i++)
+                    {
+                        if (i < texts.Count)
+                        {
+                            te.Lines[i].TranslationOption = texts[i];
+                        }
+                        else
+                        {
+                            te.Lines[i].TranslationOption = "";
+                        }
+                    }
                 });
             }
         }
@@ -259,35 +296,40 @@ namespace STCM2LEditor
                 MessageBox.Show(ex.ToString(), "Ошибка");
             }
         }
-
+        static char[] splitters =new char[] { ' ' };
+        private static List<string> SplitText(string text)
+        {
+            var list = new List<string>();
+            var words = text.Split(splitters);
+            var line = "";
+            foreach (var word in words)
+            {
+                if (line.Length + word.Length >= 40)
+                {
+                    list.Add(line);
+                    line = word;
+                }
+                else
+                {
+                    line += " " + word;
+                }
+            }
+            if (line.Length > 0)
+            {
+                list.Add(line);
+            }
+            return list;
+        }
         private void ImportTextCommand(object sender, ExecutedRoutedEventArgs e)
         {
             var win = new ImportTextWindow();
             win.Texts = TranslatedTexts.Select(x => string.Join(" ", x.Lines.Select(y => y.Text))).ToList();
             win.ShowDialog();
             TranslatedTexts.Clear();
-            var splitters = new char[] { ' ' };
             foreach (var text in win.Texts)
             {
                 var te = new TextEntity();
-                var words = text.Split(splitters);
-                var line = "";
-                foreach (var word in words)
-                {
-                    if (line.Length + word.Length >= 40)
-                    {
-                        te.AddLine(line);
-                        line = word;
-                    }
-                    else
-                    {
-                        line += " " + word;
-                    }
-                }
-                if (line.Length > 0)
-                {
-                    te.AddLine(line);
-                }
+                te.Lines = new BindingList<TextEntity.MyString>(SplitText(text).Select(x => new TextEntity.MyString { Text = x }).ToList());
                 TranslatedTexts.Add(te);
             }
         }
@@ -309,12 +351,123 @@ namespace STCM2LEditor
             var te = LinesList2.DataContext as TextEntity;
             var ind = te.Lines.IndexOf(str) + 1;
             var text = txt.Text.Substring(txt.CaretIndex) + " ";
-            txt.Text = txt.Text.Substring(0, txt.CaretIndex);
+            txt.Text = txt.Text.Substring(0, txt.CaretIndex).Trim();
             if (te.Lines.Count <= ind)
             {
                 te.AddLine();
             }
-            te.Lines[ind] = new TextEntity.MyString { Text = text + te.Lines[ind].Text };
+            te.Lines[ind].Text = text + te.Lines[ind].Text;
+            try
+            {
+                FocusTextBox(LinesList2, ind, text.Length);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog();
+            ofd.InitialDirectory = Config.Get("EngTextDirectory");
+            if (!(bool)ofd.ShowDialog())
+            {
+                return;
+            }
+            var reader = new StreamReader(ofd.FileName);
+            TranslatedTexts.Clear();
+            while (!reader.EndOfStream)
+            {
+                var te = new TextEntity();
+                foreach (var line in reader.ReadLine().Split(new char[] { '|' }))
+                {
+                    te.Lines.Add(new TextEntity.MyString { Text = line });
+                }
+                TranslatedTexts.Add(te);
+            }
+        }
+
+        private void ApplyTranslateButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var te = LinesList2.DataContext as TextEntity;
+                foreach (var line in te.Lines)
+                {
+                    line.Text = line.TranslationOption;
+                }
+            }
+            catch
+            {
+
+            }
+        }
+        private void FocusTextBox(ListView list,int ind,int caret)
+        {
+
+            var listViewItem = (ListViewItem)(LinesList2.ItemContainerGenerator.
+                ContainerFromItem(list.Items[ind]));
+
+            var myContentPresenter = FindVisualChild<ContentPresenter>(listViewItem);
+
+            var myDataTemplate = myContentPresenter.ContentTemplate;
+            var myTextBox = (TextBox)myDataTemplate.FindName("textBox", myContentPresenter);
+            myTextBox.Focus();
+            if(myTextBox.CaretIndex != 0)
+            {
+                return;
+            }
+            if(caret > myTextBox.Text.Length)
+            {
+                myTextBox.CaretIndex = myTextBox.Text.Length;
+            }
+            else
+            {
+                myTextBox.CaretIndex = caret;
+            }
+        }
+        private void TextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                var textBox = sender as TextBox;
+                var ind = (LinesList2.ItemsSource as IList<TextEntity.MyString>).IndexOf(textBox.DataContext as TextEntity.MyString);
+
+                if (e.Key == Key.Down && ind!= LinesList2.Items.Count - 1)
+                {
+                    FocusTextBox(LinesList2, ind + 1,textBox.CaretIndex);
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Up && ind != 0)
+                {
+                    FocusTextBox(LinesList2, ind - 1,textBox.CaretIndex);
+                    e.Handled = true;
+                }
+            }
+            catch
+            {
+
+            }
+        }
+        private childItem FindVisualChild<childItem>(DependencyObject obj)
+    where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                {
+                    return (childItem)child;
+                }
+                else
+                {
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                        return childOfChild;
+                }
+            }
+            return null;
         }
     }
 }

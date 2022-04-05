@@ -1,12 +1,42 @@
 ﻿using System.ComponentModel;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace STCM2LEditor.classes
 {
     public class TextEntity
     {
-        public class MyString
+        public class MyString:INotifyPropertyChanged
         {
-            public string Text { get; set; }
+            private string text;
+            private string translationOption;
+
+            public string Text
+            {
+                get => text;
+                set
+                {
+                    text = value.TrimStart();
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(nameof(text)));
+                    }
+                }
+            }
+            public string TranslationOption
+            {
+                get => translationOption; set
+                {
+                    translationOption = value.TrimStart();
+                    if (PropertyChanged != null)
+                    {
+                        PropertyChanged(this, new PropertyChangedEventArgs(nameof(TranslationOption)));
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
         }
         public TextEntity()
         {
@@ -24,7 +54,7 @@ namespace STCM2LEditor.classes
                 Lines.Add(new MyString { Text = text });
                 return;
             }
-            Lines.Insert(index, new MyString { Text = text });
+            Lines.Insert(index,new MyString { Text = text } );
         }
         public void DeleteLine(int index = -1)
         {

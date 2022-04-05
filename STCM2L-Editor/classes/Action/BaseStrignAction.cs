@@ -6,13 +6,12 @@ using System.Linq;
 
 namespace STCM2LEditor.classes.Action
 {
-    internal abstract class BaseStringAction : IStringAction
+    internal abstract class BaseStringAction : BasePropertyChanged,IStringAction
     {
         public StringParameter Original { get; set; }
         private ActionHeader Header { get; set; }
         public StringData Translated { get; set; }
         private int address;
-        private int par_seek;
         protected BaseStringAction()
         {
             Original = new StringParameter();
@@ -26,11 +25,26 @@ namespace STCM2LEditor.classes.Action
         {
             Original = original;
             Translated = translated;
-            this.par_seek = address - Original.Data.Address;
+            
             this.address = address;
         }
-        public string OriginalText { get => Original.Data.Text; set => Original.Data.Text = value; }
-        public string TranslatedText { get => Translated.Text; set => Translated.Text = value; }
+        public string OriginalText
+        {
+            get => Original.Data.Text; 
+            set
+            {
+                Original.Data.Text = value;
+                Notify(nameof(OriginalText));
+            }
+        }
+        public string TranslatedText
+        {
+            get => Translated.Text; set
+            {
+                Translated.Text = value;
+                Notify(nameof(TranslatedText));
+            }
+        }
         protected static T ReadFromFile<T>(byte[] file, ref int seek, ActionHeader header = null) where T : BaseStringAction, new()
         {
             if (header == null)
@@ -91,7 +105,7 @@ namespace STCM2LEditor.classes.Action
                     buf.Data = Translated;
                     buf.Write(main, ref position);
                 }
-                ByteUtil.InsertBytes(main, Original.Data.Write(), par_seek);
+                ByteUtil.InsertBytes(main, Original.Data.Write(), OriginalDataOffset);
             }catch(Exception exp)
             {
                 throw exp;

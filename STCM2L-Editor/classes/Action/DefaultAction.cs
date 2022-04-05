@@ -117,11 +117,13 @@ namespace STCM2LEditor.classes.Action
             }
             return action;
         }
+        private ActionHeader Header;
         private void ReadFromFile(int seek, byte[] file, ActionHeader header)
         {
             address = header.Address;
             OpCode = header.OpCode;
             Parameters = new List<IParameter>();
+            Header = header;
             var length = header.Length;
             for (int i = 0; i < header.ParametersCount; i++)
             {
@@ -190,13 +192,22 @@ namespace STCM2LEditor.classes.Action
         {
             var position = 0;
             ActionHeader header;
-            if(LocalCall == null)
+
+            if (Header != null && Header.Length != Length)
+            {
+                throw new Exception("Pizda");
+            }
+            if (LocalCall == null)
             {
                 header = new ActionHeader(0, OpCode, Parameters.Count, Length);
             }
             else
             {
                 header = new ActionHeader(1, (uint)LocalCall.Address, Parameters.Count, Length);
+            }
+            if(header.Length == 8)
+            {
+                Console.WriteLine("WTF");
             }
             var main = ByteUtil.InsertBytesRef(new byte[Length], header.Write(), ref position);
 

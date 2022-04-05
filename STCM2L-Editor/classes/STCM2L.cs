@@ -58,7 +58,7 @@ namespace STCM2LEditor.classes
         {
             Actions.RemoveAt(Actions.IndexOf(action) + 1);
         }
-        public Replic NewReplic(Replic replic, bool before)
+        internal Replic NewReplic(Replic replic, bool before)
         {
             int insertInd;
 
@@ -123,7 +123,7 @@ namespace STCM2LEditor.classes
             newReplic.Lines.Add(text);
             return newReplic;
         }
-        public void DeleteReplic(Replic replic)
+        internal void DeleteReplic(Replic replic)
         {
             if (replic.Name is IStringAction)
             {

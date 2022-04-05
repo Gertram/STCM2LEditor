@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace STCM2LEditor
 {
-    public class Replic
+    public class Replic:BasePropertyChanged
     {
         public IStringAction Name { get; set; } = null;
         public BindingList<IStringAction> Lines { get; set; } = new BindingList<IStringAction>();
-        public void AddLine(classes.STCM2L file, int index = -1)
+        internal void AddLine(STCM2L file, int index = -1)
         {
             IStringAction action;
             if (Lines.Count == 0 && Name is IStringAction nameAction) {
@@ -30,7 +30,7 @@ namespace STCM2LEditor
 
             Lines.Insert(index, action);
         }
-        public void DeleteLine(classes.STCM2L file, int index = -1)
+        internal void DeleteLine(classes.STCM2L file, int index = -1)
         {
             if (index == -1)
             {
