@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using STCM2LEditor.classes;
 using STCM2LEditor.utils;
 
-namespace STCM2LEditor.Windows
+namespace STCM2LEditor.Wins
 {
     /// <summary>
     /// Логика взаимодействия для SettingsWindow.xaml
@@ -28,8 +28,9 @@ namespace STCM2LEditor.Windows
             TranslateLanguageSelect.ItemsSource = Translator.Languages;
             TranslateLanguageSelect.DataContext = Translator.Languages;
             TranslateLanguageSelect.SelectedIndex = Translator.TranslateLanguage;
-            WorkDirectoryTextBox.Text = Config.Get("WorkDirectory");
-            EngTextDirectoryTextBox.Text = Config.Get("EngTextDirectory");
+            WorkDirectoryTextBox.Text = MainConfig.WorkDirectory;
+            TranslateBackup.Text = MainConfig.TranslateBackupFile;
+            EngTextDirectoryTextBox.Text = MainConfig.EngTextDirectory;
         }
 
         private void TranslateLanguageSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -39,17 +40,30 @@ namespace STCM2LEditor.Windows
 
         private void WorkDirectoryTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter && GetText(WorkDirectoryTextBox,out var text))
             {
-                Config.Set("WorkDirectory",WorkDirectoryTextBox.Text);
+                MainConfig.WorkDirectory = text;
             }
         }
 
         private void EngTextDirectoryTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-           if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter && GetText(EngTextDirectoryTextBox,out var text))
             {
-                Config.Set("EngTextDirectory", EngTextDirectoryTextBox.Text);
+                MainConfig.EngTextDirectory = text;
+            }
+        }
+        private bool GetText(TextBox textBox,out string text)
+        {
+            text = textBox.Text.Trim();
+            return text.Length != 0;
+        }
+
+        private void TranslateBackup_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && GetText(TranslateBackup, out var text))
+            {
+                MainConfig.TranslateBackupFile = text;
             }
         }
     }

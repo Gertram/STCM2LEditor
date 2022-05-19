@@ -60,7 +60,7 @@
                     </ListView.ContextMenu>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding Converter={StaticResource ActionNameConverter}}"/>
+                            <TextBlock DockPanel.Dock="Right" Name="Text" Text="{Binding Converter={StaticResource ActionNameConverter}}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

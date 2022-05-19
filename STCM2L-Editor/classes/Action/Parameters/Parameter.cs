@@ -19,12 +19,18 @@ namespace STCM2LEditor.classes.Action.Parameters
             Value2 = value2;
             Value3 = value3;
         }
-
-        internal Parameter(byte[] file, ref int seek)
+        internal static Parameter ReadFromFile(byte[] file, ref int seek)
         {
-            Value1 = ByteUtil.ReadUInt32Ref(file, ref seek);
-            Value2 = ByteUtil.ReadUInt32Ref(file, ref seek);
-            Value3 = ByteUtil.ReadUInt32Ref(file, ref seek);
+            if(seek + sizeof(uint)*3 >= file.Length)
+            {
+                return null;
+            }
+            return new Parameter
+            {
+                Value1 = ByteUtil.ReadUInt32Ref(file, ref seek),
+                Value2 = ByteUtil.ReadUInt32Ref(file, ref seek),
+                Value3 = ByteUtil.ReadUInt32Ref(file, ref seek),
+            };
         }
     }
 }

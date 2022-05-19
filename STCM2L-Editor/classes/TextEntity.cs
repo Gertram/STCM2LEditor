@@ -1,13 +1,17 @@
 ﻿using System.ComponentModel;
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace STCM2LEditor.classes
 {
-    public class TextEntity
+    public class TextEntity : BasePropertyChanged
     {
-        public class MyString:INotifyPropertyChanged
+        private string name = "";
+        private BindingList<MyString> lines = new BindingList<MyString>();
+
+        public class MyString : BasePropertyChanged
         {
             private string text;
             private string translationOption;
@@ -18,10 +22,7 @@ namespace STCM2LEditor.classes
                 set
                 {
                     text = value.TrimStart();
-                    if (PropertyChanged != null)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs(nameof(text)));
-                    }
+                    Notify(nameof(Text));
                 }
             }
             public string TranslationOption
@@ -29,24 +30,33 @@ namespace STCM2LEditor.classes
                 get => translationOption; set
                 {
                     translationOption = value.TrimStart();
-                    if (PropertyChanged != null)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs(nameof(TranslationOption)));
-                    }
+                    Notify(nameof(TranslationOption));
                 }
             }
-
-            public event PropertyChangedEventHandler PropertyChanged;
         }
-        public TextEntity()
+        public TextEntity(IEnumerable<string> texts)
+        {
+            if (texts != null)
+            {
+                lines = new BindingList<MyString>(texts.Select(x => new MyString { Text = x }).ToList());
+            }
+            lines.AddingNew += Lines_AddingNew;
+            lines.ListChanged += Lines_ListChanged;
+        }
+        public TextEntity() : this(null)
         {
         }
 
-        public TextEntity(string name, BindingList<MyString> lines)
+        private void Lines_ListChanged(object sender, ListChangedEventArgs e)
         {
-            Name = name;
-            Lines = lines;
+            Notify(nameof(Lines));
         }
+
+        private void Lines_AddingNew(object sender, AddingNewEventArgs e)
+        {
+            Notify(nameof(Lines));
+        }
+
         public void AddLine(string text = "", int index = -1)
         {
             if (index == -1)
@@ -54,19 +64,47 @@ namespace STCM2LEditor.classes
                 Lines.Add(new MyString { Text = text });
                 return;
             }
-            Lines.Insert(index,new MyString { Text = text } );
+            Lines.Insert(index, new MyString { Text = text });
+            Notify(nameof(Lines));
+        }
+        public void AddRange(IEnumerable<string> strings)
+        {
+            foreach(var str in strings)
+            {
+                AddLine(str);
+            }
         }
         public void DeleteLine(int index = -1)
         {
+            if(Lines.Count == 1)
+            {
+                return;
+            }
             if (index == -1)
             {
                 Lines.RemoveAt(Lines.Count - 1);
                 return;
             }
             Lines.RemoveAt(index);
+            Notify(nameof(Lines));
         }
 
-        public string Name { get; set; } = "";
-        public BindingList<MyString> Lines { get; set; } = new BindingList<MyString>();
+        public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                Notify(nameof(Name));
+            }
+        }
+        public BindingList<MyString> Lines
+        {
+            get => lines; 
+            private set
+            {
+                lines = value;
+            }
+        }
     }
 }

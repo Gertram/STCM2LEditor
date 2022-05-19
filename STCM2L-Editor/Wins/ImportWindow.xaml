@@ -1,23 +1,37 @@
 ﻿<Window x:Class="STCM2LEditor.ImportWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Name="root"
+        x:Name="root"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:STCM2LEditor"
+        xmlns:presets="clr-namespace:STCM2LEditor.GamePresets"
+        xmlns:wins="clr-namespace:STCM2LEditor.Wins"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
         xmlns:classes="clr-namespace:STCM2LEditor.classes" 
         mc:Ignorable="d"
-        Title="ImportTextWindow" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
+        Loaded="root_Loaded"
+        Closing="root_Closing"
+        Title="ImportTextWindow" Height="720" Width="1522" WindowStartupLocation="CenterScreen">
     <Window.CommandBindings>
+        <CommandBinding Command="Save" Executed="SaveCommand"/>
         <CommandBinding Command="local:WindowCommands.ImportFromXML" Executed="ImportXMLCommand"/>
         <CommandBinding Command="local:WindowCommands.ImportFromText" Executed="ImportTextCommand"/>
         <CommandBinding Command="local:WindowCommands.TextView" Executed="TextViewCommand"/>
         <CommandBinding Command="local:WindowCommands.NewLine" Executed="NewLineCommand"/>
+        <CommandBinding Command="local:WindowCommands.ChangeSelected" Executed="ChangeSelectedCommand"/>
+        <CommandBinding Command="local:WindowCommands.QuickTranslate" Executed="QuickTranslateCommand"/>
     </Window.CommandBindings>
+    <Window.Resources>
+        <local:TextBoxColorConverter x:Key="TextBoxColorConverter"/>
+    </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+Shift+X" Command="local:WindowCommands.ImportFromXML"/>
         <KeyBinding Gesture="Ctrl+Shift+T" Command="local:WindowCommands.ImportFromText"/>
         <KeyBinding Gesture="Ctrl+T" Command="local:WindowCommands.TextView"/>
+        <KeyBinding Gesture="Ctrl+Q" Command="local:WindowCommands.QuickTranslate" />
+        <KeyBinding Key="Down" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="DownReplic"/>
+        <KeyBinding Key="Up" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="UpReplic"/>
     </Window.InputBindings>
     <DockPanel>
         <Grid  DockPanel.Dock="Top">
@@ -32,18 +46,21 @@
                     <MenuItem Header="_XML" Command="local:WindowCommands.ImportFromXML" InputGestureText="Ctrl+Shift+X"/>
                     <MenuItem Header="_Text" >
                         <MenuItem Header="_NotFormatted" Command="local:WindowCommands.ImportFromText"/>
-                        <MenuItem Header="_Formatted" Click="MenuItem_Click"/>
+                        <MenuItem Header="_Formatted" Click="ImportFormattedTextMenuItem_Click"/>
                     </MenuItem>
+                    <MenuItem Header="_STCM2LScript" Click="MenuItem_Click_1"/>
                 </MenuItem>
                 <MenuItem Header="TextView" Command="local:WindowCommands.TextView" InputGestureText="Ctrl+T"/>
+                <MenuItem Header="Автозамена имен" Click="AutoChangeNameMenuItem_Click"/>
             </Menu>
-            <CheckBox Grid.Column="1" Content="Imported auto translate" Name="ImportedTrsnalteCheckbox" IsChecked="False"></CheckBox>
-            <CheckBox Grid.Column="2" Content="Auto translate" Name="AutotranslateCheckbox" IsChecked="True"></CheckBox>
-            <Button Grid.Column="3" Content="Save" Click="Button_Click"></Button>
+            <CheckBox Grid.Column="1" Content="Imported auto translate" Name="ImportedTrsnalteCheckbox" 
+                      IsChecked="{Binding Mode=OneWay,Source={x:Static  wins:MainConfig.AutotranslateImport},Path=Value}"/>
+            <CheckBox Grid.Column="2" Content="Auto translate" Name="AutotranslateCheckbox" IsChecked="True"/>
+            <Button Grid.Column="3" Content="Save" Command="Save" />
         </Grid>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MaxWidth="300"/>
+                <ColumnDefinition Width="10*" MaxWidth="400"/>
                 <ColumnDefinition Width="3"/>
                 <ColumnDefinition Width="2*" MaxWidth="300"/>
                 <ColumnDefinition Width="3"/>
@@ -52,7 +69,7 @@
             <Grid Grid.Column="0">
                 <ListView Name="TextsList1" BorderBrush="#00000000"
                           SelectionChanged="TextsList_SelectionChanged"
-                          ItemsSource="{Binding Path=Texts,Mode=OneWay}">
+                          ItemsSource="{Binding Path=Replics,Mode=OneWay}">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new text:">
@@ -64,7 +81,14 @@
                     </ListView.ContextMenu>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].OriginalText}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Name="wrap" DockPanel.Dock="Right" Text="{Binding Lines[0].OriginalText}"/>
+                                <TextBlock Grid.Column="1" Name="translate" DockPanel.Dock="Right" Text="{Binding Lines[0].TranslatedText}"/>
+                            </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -72,6 +96,7 @@
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" />
             <Grid Grid.Column="2">
                 <ListView Name="TextsList2" BorderBrush="#00000000" 
+                          PreviewKeyDown="LinesList2_PreviewKeyDown"
                           ItemsSource="{Binding Path=TranslatedTexts,Mode=OneWay}" SelectionChanged="TextsList_SelectionChanged">
                     <ListView.ContextMenu>
                         <ContextMenu>
@@ -87,6 +112,11 @@
                             <TextBlock DockPanel.Dock="Right" Text="{Binding Lines[0].Text,Mode=OneWay}"/>
                         </DataTemplate>
                     </ListView.ItemTemplate>
+                    <ListView.InputBindings>
+                        <KeyBinding Key="Down" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="DownReplic"/>
+                        <KeyBinding Key="Up" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="UpReplic"/>
+                        <KeyBinding Key="Q" Modifiers="Ctrl" Command="local:WindowCommands.QuickTranslate" />
+                    </ListView.InputBindings>
                 </ListView>
             </Grid>
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Width="3" />
@@ -98,7 +128,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="40"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0"  DataContext="{Binding ElementName=TextsList1,Mode=OneWay,Path=SelectedItem}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="200"/>
@@ -128,10 +158,17 @@
                         Click="AddNewLineClick"
                     />
                 </Grid>
-                <ListView Grid.Row="1" Name="LinesList1" BorderBrush="Black">
+                <ListView Grid.Row="1" Name="LinesList1" BorderBrush="Black"  
+                          DataContext="{Binding ElementName=TextsList1,Mode=OneWay,Path=SelectedItem}" 
+                          ItemsSource="{Binding ElementName=TextsList1,Mode=OneWay,Path=SelectedItem.Lines}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <TextBox 
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
                                 DockPanel.Dock="Left" 
                                 Text="{Binding Path=OriginalText, Mode=OneWay}"
                                 IsReadOnly="True"
@@ -139,13 +176,24 @@
                                 MinWidth="100px" 
                                 HorizontalAlignment="Left"
                             />
+                                <TextBox Grid.Column="1"
+                                DockPanel.Dock="Left" 
+                                Text="{Binding Path=TranslatedText, Mode=OneWay}"
+                                IsReadOnly="True"
+                                MaxLength="40"
+                                MinWidth="100px" 
+                                HorizontalAlignment="Left"
+                            />
+                            </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
                 <Border Grid.Row="2" BorderBrush="Black" BorderThickness="0.75">
                     <TextBox IsReadOnly="True" x:Name="Autotranslate"></TextBox>
                 </Border>
-                <ListView Grid.Row="3" Name="LinesList2" ItemsSource="{Binding Path=Lines}" BorderBrush="Black">
+                <ListView Grid.Row="3" Name="LinesList2" 
+                          DataContext="{Binding ElementName=TextsList2,Mode=OneWay,Path=SelectedItem}" 
+                          ItemsSource="{Binding ElementName=TextsList2,Mode=OneWay,Path=SelectedItem.Lines}" BorderBrush="Black">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new line:">
@@ -155,6 +203,11 @@
                             <MenuItem Header="Delete" Click="DeleteLineClick"/>
                         </ContextMenu>
                     </ListView.ContextMenu>
+                    <ListView.InputBindings>
+                        <KeyBinding Key="Down" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="DownReplic"/>
+                            <KeyBinding Key="Up" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="UpReplic"/>
+                            <KeyBinding Key="Q" Modifiers="Ctrl" Command="local:WindowCommands.QuickTranslate" />
+                    </ListView.InputBindings>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -165,18 +218,50 @@
                                 <TextBox Grid.Column="0"
                                          Name="textBox"
                                 Text="{Binding Mode=TwoWay,Path=Text, UpdateSourceTrigger=PropertyChanged}"
-                                KeyUp="TextBox_KeyUp"
-                                MaxLength="40"
+                                MaxLength="{Binding Mode=OneWay,Source={x:Static presets:GamePresetConfigProvider.Instance},Path=Selected.MaxSymsInLine}"
                                 MinWidth="100px" 
+                                         PreviewMouseDown="textBox_MouseDown"
+                                         PreviewKeyDown="TextBox_PreviewKeyDown"
                                 HorizontalAlignment="Left"
                             >
+                                    <TextBox.Background>
+                                        <MultiBinding Converter="{StaticResource TextBoxColorConverter}">
+                                            <Binding RelativeSource="{RelativeSource Self}" Path="Text"/>
+                                            <Binding RelativeSource="{RelativeSource Self}" Path="MaxLength" />
+                                            <Binding ElementName="root" Path="Background"/>
+                                        </MultiBinding>
+                                    </TextBox.Background>
                                     <TextBox.InputBindings>
                                         <KeyBinding Key="ENTER" Modifiers="Shift" Command="local:WindowCommands.NewLine" CommandParameter="{Binding ElementName=root, Path=(FocusManager.FocusedElement)}"/>
+                                        <KeyBinding Key="Down" Command="local:WindowCommands.ChangeSelected" CommandParameter="Down"/>
+                                        <KeyBinding Key="Up" Command="local:WindowCommands.ChangeSelected" CommandParameter="Up"/>
+                                        <KeyBinding Key="Down" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="DownReplic"/>
+                                        <KeyBinding Key="Up" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="UpReplic"/>
+                                        <KeyBinding Gesture="Ctrl+Q" Command="local:WindowCommands.QuickTranslate" />
+                                        <KeyBinding Key="Right" Modifiers="Ctrl" 
+                                                    CommandTarget="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid},Mode=FindAncestor},Path=Children[1]}"
+                                                    Command="local:WindowCommands.ChangeSelected" CommandParameter="Right"/>
                                     </TextBox.InputBindings>
                                 </TextBox>
-                                <TextBox Grid.Column="1" MaxLength="40" 
+                                <TextBox Grid.Column="1"
+                                         PreviewMouseDown="textBox_MouseDown"
+                                         MaxLength="{Binding Mode=OneWay,Source={x:Static presets:GamePresetConfigProvider.Instance},Path=Selected.MaxSymsInLine}" Name="TranslateOption"
                                          Text="{Binding Path=TranslationOption,Mode=TwoWay,
-                                                        UpdateSourceTrigger=PropertyChanged}"/>
+                                    
+                                                        UpdateSourceTrigger=PropertyChanged}">
+
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="ENTER" Modifiers="Shift" Command="local:WindowCommands.NewLine" CommandParameter="{Binding ElementName=root, Path=(FocusManager.FocusedElement)}"/>
+                                        <KeyBinding Key="Down" Command="local:WindowCommands.ChangeSelected" CommandParameter="Down"/>
+                                        <KeyBinding Key="Up" Command="local:WindowCommands.ChangeSelected" CommandParameter="Up"/>
+                                        <KeyBinding Key="Down" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="DownReplic"/>
+                                        <KeyBinding Key="Up" Modifiers="Ctrl" Command="local:WindowCommands.ChangeSelected" CommandParameter="UpReplic"/>
+                                        <KeyBinding Gesture="Ctrl+Q" Command="local:WindowCommands.QuickTranslate" />
+                                        <KeyBinding Key="Left" Modifiers="Ctrl" 
+                                                    CommandTarget="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid},Mode=FindAncestor},Path=Children[0]}"
+                                                    Command="local:WindowCommands.ChangeSelected" CommandParameter="Left"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -184,7 +269,7 @@
                 <Button Grid.Row="4" Width="100" HorizontalAlignment="Right"
                         IsEnabled="{Binding ElementName=ImportedTrsnalteCheckbox,Path=IsChecked}"
                         x:Name="ApplyTranslateButton"
-                        Click="ApplyTranslateButton_Click"
+                        Command="local:WindowCommands.QuickTranslate"
                         Content="Apply" />
             </Grid>
         </Grid>

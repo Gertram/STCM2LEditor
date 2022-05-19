@@ -13,7 +13,7 @@ namespace STCM2LEditor
             try
             {
                 IString data;
-                if (action.OpCode == ActionHelpers.ACTION_PLACE)
+                if (action.OpCode == ActionHelpers.ACTION_PLACE && action is PlaceAction)
                 {
                     data = action as IString;
                     if (data.TranslatedText != "")
@@ -21,7 +21,7 @@ namespace STCM2LEditor
                     else
                         return $"Place {data.OriginalText}";
                 }
-                else if (action.OpCode == ActionHelpers.ACTION_NAME)
+                else if (action.OpCode == ActionHelpers.ACTION_NAME && action is NameAction)
                 {
                     var text = $"Name ({action.OpCode:X})";
                     if (action is IStringAction stringAction)
@@ -33,7 +33,7 @@ namespace STCM2LEditor
                     }
                     return text;
                 }
-                else if (action.OpCode == ActionHelpers.ACTION_TEXT)
+                else if (action.OpCode == ActionHelpers.ACTION_TEXT && action is TextAction)
                 {
                     var text = $"Text ({action.OpCode:X})";
                     if (action is IStringAction strinAction)

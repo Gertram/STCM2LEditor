@@ -8,5 +8,6 @@ namespace STCM2LEditor.classes.Action
         byte[] WriteTranslate();
 
         IStringAction Copy();
+        bool IsTranslated { get; }
     }
 }

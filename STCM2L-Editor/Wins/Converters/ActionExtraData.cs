@@ -17,7 +17,13 @@ namespace STCM2LEditor
             if (value == null) return value;
             if(value is DefaultAction action)
             {
-                return $"{string.Join("", action.BuildExtraData().Select(x => $"{x:X}"))}";
+                if (action.ExtraData != null)
+                {
+                    var str = utils.EncodingUtil.Current.Encoding.GetString(action.ExtraData);
+
+                    return str + $" ({string.Join("", action.BuildExtraData().Select(x => $"{x:X}"))})";
+                }
+                return $" {string.Join("", action.BuildExtraData().Select(x => $"{x:X}"))}";
             }
             return $"{string.Join("",(value as IAction).ExtraData.Select(x => $"{x:X}"))}";
         }

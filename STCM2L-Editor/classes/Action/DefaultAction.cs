@@ -45,64 +45,77 @@ namespace STCM2LEditor.classes.Action
                 Parameters.Add(new Parameter());
             }
         }
-        private static IAction ParseAction(byte[] file,int seek,STCM2L stcm2l,ActionHeader header)
+        private static IAction ParseAction(byte[] file,int base_seek,STCM2L stcm2l,ActionHeader header,IGameSettings settings)
         {
-            if (header.OpCode == ActionHelpers.ACTION_NAME)
-            {
-                var name = NameAction.ReadFromFile(file, ref seek, header);
-                if (stcm2l.NameActions.TryGetValue(name.OriginalText, out var list))
+            int seek = base_seek;
+                if (header.OpCode == settings.ACTION_NAME && settings.ACTION_NAME != 0)
                 {
-                    list.Add(name);
+                    var name = NameAction.ReadFromFile(file, ref seek,settings, header);
+                    if (name != null)
+                    {
+                        if (stcm2l.NameActions.TryGetValue(name.OriginalText, out var list))
+                        {
+                            list.Add(name);
+                        }
+                        else
+                        {
+                            list = new System.ComponentModel.BindingList<IStringAction> { name };
+                            stcm2l.NameActions.Add(name.OriginalText, list);
+                        }
+                        if (header.Length != name.Length)
+                        {
+                            throw new Exception("Action length error");
+                        }
+                    base_seek = seek;
+                        return name;
+                    }
                 }
-                else
+                else if (header.OpCode == settings.ACTION_TEXT && settings.ACTION_TEXT != 0)
                 {
-                    list = new System.ComponentModel.BindingList<IStringAction> { name };
-                    stcm2l.NameActions.Add(name.OriginalText, list);
+                    var text = TextAction.ReadFromFile(file, ref seek, settings, header);
+                    if (text != null)
+                    {
+                        stcm2l.TextActions.Add(text);
+                        if (header.Length != text.Length)
+                        {
+                            throw new Exception("Action length error");
+                        }
+                    base_seek = seek;
+                    return text;
+                    }
                 }
-                if (header.Length != name.Length)
-                {
-                    throw new Exception("Action length error");
-                }
-                return name;
-            }
-            else if (header.OpCode == ActionHelpers.ACTION_TEXT)
-            {
-                var text = TextAction.ReadFromFile(file, ref seek, header);
-                stcm2l.TextActions.Add(text);
-                if (header.Length != text.Length)
-                {
-                    throw new Exception("Action length error");
-                }
-                return text;
-            }
 
-            else if (header.OpCode == ActionHelpers.ACTION_PLACE)
-            {
-                var place = PlaceAction.ReadFromFile(file, ref seek, header);
-                if (stcm2l.PlaceActions.TryGetValue(place.OriginalText, out var list))
+                else if (header.OpCode == settings.ACTION_PLACE && settings.ACTION_PLACE != 0)
                 {
-                    list.Add(place);
+                    var place = PlaceAction.ReadFromFile(file, ref seek, settings, header);
+                    if (place != null)
+                    {
+                        if (stcm2l.PlaceActions.TryGetValue(place.OriginalText, out var list))
+                        {
+                            list.Add(place);
+                        }
+                        else
+                        {
+                            list = new System.ComponentModel.BindingList<IStringAction> { place };
+                            stcm2l.PlaceActions.Add(place.OriginalText, list);
+                        }
+                        if (header.Length != place.Length)
+                        {
+                            throw new Exception("Action length error");
+                        }
+                    base_seek = seek;
+                    return place;
+                    }
                 }
-                else
-                {
-                    list = new System.ComponentModel.BindingList<IStringAction> { place };
-                    stcm2l.PlaceActions.Add(place.OriginalText, list);
-                }
-                if (header.Length != place.Length)
-                {
-                    throw new Exception("Action length error");
-                }
-                return place;
-            }
 
             var action = new DefaultAction();
             action.ReadFromFile(seek, file, header);
             return action;
         }
-        internal static IAction ReadFromFile(byte[] file, int seek, STCM2L stcm2l)
+        internal static IAction ReadFromFile(byte[] file, int seek, STCM2L stcm2l,IGameSettings settings)
         {
             var header = ActionHeader.ReadFromFile(file, ref seek);
-            var action = ParseAction(file, seek, stcm2l, header);
+            var action = ParseAction(file, seek, stcm2l, header, settings);
             if(header.IsLocalCall == 1)
             {
                 if(Global.ActionCalls.TryGetValue(header.OpCode,out var list))
@@ -118,7 +131,7 @@ namespace STCM2LEditor.classes.Action
             return action;
         }
         private ActionHeader Header;
-        private void ReadFromFile(int seek, byte[] file, ActionHeader header)
+        internal void ReadFromFile(int seek, byte[] file, ActionHeader header)
         {
             address = header.Address;
             OpCode = header.OpCode;
@@ -147,16 +160,16 @@ namespace STCM2LEditor.classes.Action
         }
         private IParameter ParseParameter(byte[] file, ref int seek, int parametersCount,int length)
         {
-            var param = new Parameter(file, ref seek);
+            var param = Parameter.ReadFromFile(file, ref seek);
 
             if (param.Value1 == 0xffffff41)
             {
                 return new GlobalParameter(param);
             }
             else if (IsLocalParam(param.Value1,length))
-            {
+            {   
                 int dataAddress = (int)param.Value1;
-                var parameter = new LocalParameter(file, param);
+                var parameter = LocalParameter.ReadFromFile(file, param);
                 parameter.DataSeek = parameter.Data.Address - Address - ActionHelpers.HEADER_LENGTH - IParameterHelpers.HEADER_LENGTH * parametersCount;
                 return parameter;
             }

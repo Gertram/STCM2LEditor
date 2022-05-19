@@ -26,35 +26,32 @@ namespace STCM2LEditor.classes.Action.Parameters
 
         public virtual int AlignedLength => ExtraData.Length;
 
-        internal ParameterData(uint dataType, uint dataVal3, byte[] extraData)
+        internal ParameterData(uint dataType, uint dataVal3, byte[] extraData, int address = 0)
         {
             Type = dataType;
             Value = dataVal3;
             ExtraData = extraData;
-        }
-        protected ParameterData() { }
-        internal ParameterData(IParameterData data)
-        {
-            address = data.Address;
-            Type = data.Type;
-            Value = data.Value;
-            ExtraData = data.ExtraData;
-        }
-        internal ParameterData(byte[] file, int address)
-        {
-            try
+            Address = address;
+            if (extraData == null)
             {
-                Address = address;
-                Type = ByteUtil.ReadUInt32Ref(file, ref address);
-                var offset = ByteUtil.ReadInt32Ref(file, ref address) * sizeof(uint);//количество sizeof(int) слов
-                Value = ByteUtil.ReadUInt32Ref(file, ref address);
-                var strLength = ByteUtil.ReadUInt32Ref(file, ref address);
-                ExtraData = ByteUtil.ReadBytesRef(file, offset, ref address);
+                throw new Exception();
             }
-            catch
+        }
+        protected ParameterData() : this(0, 0, new byte[0]) { }
+        internal ParameterData(IParameterData data) : this(data.Type, data.Value, data.ExtraData, data.Address) { }
+        internal static ParameterData ReadFromFile(byte[] file, int base_address)
+        {
+            int address = base_address;
+            var type = ByteUtil.ReadUInt32Ref(file, ref address);
+            var offset = ByteUtil.ReadInt32Ref(file, ref address) * sizeof(uint);//количество sizeof(int) слов
+            var value = ByteUtil.ReadUInt32Ref(file, ref address);
+            var strLength = ByteUtil.ReadUInt32Ref(file, ref address);
+            var extraData = ByteUtil.ReadBytesRef(file, offset, ref address);
+            if(extraData == null)
             {
-                Console.WriteLine($"{address:X}");
+                return null;
             }
+            return new ParameterData(type, value, extraData, base_address);
         }
         public byte[] Write()
         {

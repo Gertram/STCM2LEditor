@@ -3,7 +3,7 @@ using STCM2LEditor.utils;
 
 namespace STCM2LEditor.classes.Action
 {
-    internal partial class ActionHeader
+    public partial class ActionHeader
     {
         public ActionHeader(uint isLocalCall, uint opCode, int parametersCount, int length)
             : this(0, isLocalCall, opCode, parametersCount, length)

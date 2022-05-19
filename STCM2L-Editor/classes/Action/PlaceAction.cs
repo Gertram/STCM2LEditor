@@ -18,21 +18,21 @@ namespace STCM2LEditor.classes.Action
             Par2 = par2;
             Par3 = par3;
         }
-        public static PlaceAction ReadFromFile(byte[] file, ref int seek, ActionHeader header = null)
+        internal static PlaceAction ReadFromFile(byte[] file, ref int seek, IGameSettings settings, ActionHeader header = null)
         {
             if (header == null)
             {
                 header = ActionHeader.ReadFromFile(file, ref seek);
             }
-            var id = StringParameter.ReadFromFile(file, ref seek);
+            var id = StringParameter.ReadFromFile(file, ref seek,settings);
             var par2 = LocalParameter.ReadFromFile(file, ref seek);
             var par3 = LocalParameter.ReadFromFile(file, ref seek);
-            var original = StringParameter.ReadFromFile(file, ref seek);
-            var translate = new StringData();
+            var original = StringParameter.ReadFromFile(file, ref seek,settings);
+            var translate = new StringData(settings);
             var address = header.Address;
             var action = new PlaceAction(id, par2, par3, original, translate, address);
 
-            action.InsertOriginal(file);
+            action.InsertOriginal(file,settings);
 
             return action;
         }
@@ -70,7 +70,7 @@ namespace STCM2LEditor.classes.Action
             ByteUtil.InsertBytes(main, Par3.Data.Write(), Par3.Data.Address - Address);
             base.WriteParameters(main, position);
         }
-
+        public override bool IsTranslated { get => Translated != null && TranslatedText.Trim().Length > 0; set => base.IsTranslated = value; }
         public override IStringAction Copy()
         {
             throw new System.NotImplementedException();

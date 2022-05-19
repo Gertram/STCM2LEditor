@@ -1,4 +1,5 @@
 ﻿<controls:MetroWindow
+    xml:lang="ru-ru"
     x:Class="STCM2LEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,15 +7,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:STCM2LEditor"
+        xmlns:presets="clr-namespace:STCM2LEditor.GamePresets"
+    AllowDrop="True"
+    x:Name="root"
+    Drop="MetroWindow_Drop"
         mc:Ignorable="d"
+    DataContext="{Binding RelativeSource={RelativeSource Self}}"
     Closing="OnClosing"
+    Closed="MetroWindow_Closed"
         Icon="../icon.ico"
         Title="STCM2L Editor"  Height="720" Width="1280"   
          WindowStartupLocation="CenterScreen"
         BorderBrush="{DynamicResource AccentColorBrush}"
         BorderThickness="1"
  >
-
+    <Window.Resources>
+        <local:TextBoxColorConverter x:Key="TextBoxColorConverter"/>
+        
+    </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="Open" Executed="OpenFileCommad"/>
         <CommandBinding Command="Save" Executed="SaveCommand"/>
@@ -26,7 +36,14 @@
         <CommandBinding Command="local:WindowCommands.InsertTrash" Executed="InsertTrashCommand"/>
         <CommandBinding Command="local:WindowCommands.Pack" Executed="PackCommand"/>
         <CommandBinding Command="local:WindowCommands.Settings" Executed="SettingsCommand"/>
-        <CommandBinding Command="local:WindowCommands.GamePreset" Executed="GamePresetCommand"/>
+        <CommandBinding Command="local:WindowCommands.GamePreset" Executed="GamePresetCommand" x:Name="OpenGamePresetCommandBinding"/>
+        <CommandBinding Command="local:WindowCommands.ResizeTextBox" Executed="ResizeTextBoxCommand"/>
+        <CommandBinding Command="local:WindowCommands.SwitchText" Executed="SwitchTextCommand"/>
+        <CommandBinding Command="local:WindowCommands.DeleteGamePreset" Executed="DeleteGamePresetCommand" x:Name="DeleteGamePresetCommandBinding"/>
+        <CommandBinding Command="local:WindowCommands.EditGamePreset" Executed="EditGamePresetCommand" x:Name="EditGamePresetCommandBinding"/>
+        <CommandBinding Command="local:WindowCommands.ReplaceDots" Executed="ReplaceDotsCommandBinding_Executed" x:Name="ReplaceDotsCommandBinding"/>
+        <CommandBinding Command="local:WindowCommands.MoveLine" Executed="MoveLineCommandBinding_Executed" x:Name="MoveLineCommandBinding"/>
+        
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+O" Command="Open"/>
@@ -34,10 +51,12 @@
         <KeyBinding Gesture="Ctrl+S" Command="Save"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="SaveAs"/>
         <KeyBinding Gesture="Ctrl+Shift+P" Command="local:WindowCommands.Pack"/>
+        <KeyBinding Gesture="Ctrl+Shift+l" Command="local:WindowCommands.SwitchText"/>
+        <KeyBinding Gesture="Ctrl+Shift+R" Command="local:WindowCommands.ReplaceDots"/>
     </Window.InputBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top" IsMainMenu="True" x:Name="MainMenu">
-            <MenuItem Header="_File">
+            <MenuItem Header="_File" x:Uid="FileMenuItem">
                 <MenuItem 
                     Header="_Open" 
                     Command="Open"
@@ -99,6 +118,7 @@
                     BorderBrush="#00000000">
                     <ListView.ContextMenu>
                         <ContextMenu>
+                            <MenuItem Header="Open in Action View" Click="OpenInActionView_Click"/>
                             <MenuItem Header="Insert new text:">
                                 <MenuItem Header="Before" Click="InsertNewTextBeforeClick"/>
                                 <MenuItem Header="After" Click="InsertNewTextAfterClick"/>
@@ -121,7 +141,8 @@
                 </ListView>
             </Grid>
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="3" />
-            <Grid Grid.Column="2" x:Name="ReplicWrap">
+            <Grid Grid.Column="2" x:Name="ReplicWrap" 
+                  DataContext="{Binding ElementName=TextsList, Path=SelectedItem,Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
@@ -191,20 +212,36 @@
                                     Grid.Column="0"
                                 DockPanel.Dock="Left" 
                                 Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                                    IsReadOnly="True"
-                                MaxLength="40"
+                                MaxLength="{Binding Mode=OneWay, Source={x:Static presets:GamePresetConfigProvider.Instance},Path=Selected.MaxSymsInLine}"
+                                IsReadOnly="True"
                                 MinWidth="100px" 
                                 HorizontalAlignment="Left"
                             />
                                 <TextBox 
                                     Grid.Column="1"
+                                    SpellCheck.IsEnabled="True"
+                                    Name="TextBox"
                                 DockPanel.Dock="Left" 
                                 Text="{Binding Path=TranslatedText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 TextChanged="TextChanged"
-                                MaxLength="40"
-                                MinWidth="100px" 
+                                MaxLength="{Binding Mode=OneWay,Source={x:Static presets:GamePresetConfigProvider.Instance},Path=Selected.MaxSymsInLine}"
+                                MinWidth="200px" 
+                                    PreviewMouseDown="TextBox_PreviewMouseDown"
                                 HorizontalAlignment="Left"
-                            />
+                            >
+                                    <TextBox.Background>
+                                        <MultiBinding Converter="{StaticResource TextBoxColorConverter}">
+                                            <Binding RelativeSource="{RelativeSource Self}" Path="Text"/>
+                                            <Binding RelativeSource="{RelativeSource Self}" Path="MaxLength" />
+                                            <Binding ElementName="root" Path="Background"/>
+                                        </MultiBinding>
+                                    </TextBox.Background>
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Gesture="Shift+Enter" Command="local:WindowCommands.MoveLine" CommandParameter="true"/>
+                                        <KeyBinding Gesture="Ctrl+Shift+Enter" Command="local:WindowCommands.MoveLine" CommandParameter="false"/>
+                                        <KeyBinding Key="OemPlus" Modifiers="Shift" Command="local:WindowCommands.ResizeTextBox" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

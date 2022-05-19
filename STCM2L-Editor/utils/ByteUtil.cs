@@ -42,6 +42,10 @@ namespace STCM2LEditor.utils
 
         public static byte[] ReadBytesRef(byte[] file, int amount, ref int seek)
         {
+            if(seek + amount > file.Length)
+            {
+                return null;
+            }
             byte[] readValue = new byte[amount];
 
             Array.Copy(file, seek, readValue, 0, amount);

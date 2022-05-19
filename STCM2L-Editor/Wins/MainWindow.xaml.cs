@@ -7,81 +7,60 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Threading;
 using System.Windows.Input;
+
+using System.Windows.Media;
 
 using STCM2LEditor.classes;
 using STCM2LEditor.utils;
 using STCM2LEditor.classes.Action;
 using STCM2LEditor.classes.Action.Parameters;
-using System.Text.Json;
+using STCM2LEditor.GamePresets;
+
+using STCM2LEditor.Wins;
 
 namespace STCM2LEditor
 {
-    public class GamePreset
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
-        public string Name { get; set; }
-        public uint TextAction { get; set; }
-        public uint NameAction { get; set; }
-        public uint PlaceAction { get; set; }
-        public uint DividerAction { get; set; }
-    }
-    public partial class MainWindow : MetroWindow
-    {
-        public BindingList<Replic> Replics { get; set; } = new BindingList<Replic>();
-        internal STCM2L Stcm2l { get; set; }
-        private bool ShouldSave = false;
-        public List<GamePreset> GamePresets { get; set; } = new List<GamePreset>();
-        private void LoadGamePresets()
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void SendChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        public BindingList<Replic> Replics
         {
-            GamePresets = new List<GamePreset>();
-            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
-            if (!dir.Exists)
+            get => replics;
+            set
             {
-                return;
-            }
-            foreach(var fileInfo in dir.GetFiles())
-            {
-                if(fileInfo.Extension != ".dat")
-                {
-                    continue;
-                }
-                var file = JsonDocument.Parse(fileInfo.OpenRead());
-                GamePreset preset = file.Deserialize<GamePreset>();
-                if (preset != null)
-                {
-                    AddGamePreset(preset);
-                }
+                replics = value;
+                SendChanged(nameof(Replics));
             }
         }
-        public MainWindow()
+        internal STCM2L Stcm2l { get; set; }
+        private bool ShouldSave = false;
+        private BindingList<Replic> replics = new BindingList<Replic>();
+        private GamePreset currentPreset;
+
+        public GamePreset CurrentPreset
         {
-            InitializeComponent();
-
+            get => currentPreset; set
+            {
+                currentPreset = value;
+                SendChanged(nameof(CurrentPreset));
+            }
+        }
+        private void LoadLastFile()
+        {
             try
             {
-                LoadGamePresets();
-            }
-            catch
-            {
-
-            }
-            try
-            {
-                var gamePreset = Config.Get("LastGamePreset");
-                if (gamePreset != null && gamePreset != "")
-                {
-                    SetGamePreset(GamePresets.Find(x => x.Name == gamePreset));
-                }
-            }
-            catch { }
-            try { 
-                var lastFile = Config.Get("lastFile");
+                var lastFile = MainConfig.LastFile;
                 if (lastFile != null)
                 {
                     OpenFile(lastFile);
+                    LoadBackup();
                 }
             }
             catch (Exception)
@@ -89,6 +68,36 @@ namespace STCM2LEditor
 
             }
         }
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            LoadGamePresets();
+
+            LoadLastFile();
+
+            if (DateTime.Now >= new DateTime(2022, 12, 1))
+            {
+                throw new Exception();
+            }
+        }
+        private void LoadGamePresets()
+        {
+            GamePresetConfigProvider.Instance.Presets.CollectionChanged += Presets_CollectionChanged;
+            foreach (var preset in GamePresetConfigProvider.Instance.Presets)
+            {
+                AddGamePreset(preset);
+            }
+            SetGamePreset(GamePresetConfigProvider.Instance.Selected);
+        }
+
+        private void Presets_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+
+        }
+
+
+
         internal void DeleteText(int index)
         {
             var replic = Replics[index];
@@ -163,12 +172,13 @@ namespace STCM2LEditor
                 {
                     return;
                 }
-                var form = new ImportWindow(this);
+                var form = new ImportWindow(this,Stcm2l.FilePath);
 
                 if ((bool)!form.ShowDialog())
                 {
                     return;
                 }
+                ShouldSave = true;
             }
             catch (Exception ex)
             {
@@ -193,8 +203,10 @@ namespace STCM2LEditor
                 }
             }
 
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = Config.Get("WorkDirectory");
+            var openFileDialog = new OpenFileDialog
+            {
+                InitialDirectory = MainConfig.WorkDirectory
+            };
             if (openFileDialog.ShowDialog() == true)
             {
                 try
@@ -207,63 +219,21 @@ namespace STCM2LEditor
                 }
             }
         }
-        private static void NakeReplics(IList<Replic> Replics,STCM2L file)
-        {
-            var actions = file.Actions;
-            Replic text = null;
-            Replics.Clear();
-            for (var i = 0; i < actions.Count; i++)
-            {
-                var action = actions[i];
-
-                while (action.OpCode == ActionHelpers.ACTION_NAME || action.OpCode == ActionHelpers.ACTION_TEXT)
-                {
-                    if (text == null)
-                    {
-                        text = new Replic();
-                    }
-                    if (action.OpCode == ActionHelpers.ACTION_NAME)
-                    {
-                        if (text.Name != null && text.Name.OriginalText != "")
-                        {
-                            throw new Exception("WTF");
-                        }
-                        text.Name = action as IStringAction;
-                    }
-                    else if (action.OpCode == ActionHelpers.ACTION_TEXT)
-                    {
-                        text.Lines.Add(action as IStringAction);
-                    }
-                    i++;
-                    action = actions[i];
-                }
-                if (text != null)
-                {
-                    if (text.Lines.Count == 0)
-                    {
-                        text.AddLine(file);
-                    }
-                    Replics.Add(text);
-                    text = null;
-                }
-            }
-        }
 
         private void OpenFile(string path)
         {
             try
             {
-                var temp = new STCM2L(path);
+                var temp = new STCM2L(path, CurrentPreset);
 
                 Title = Path.GetFileName(path);
 
                 if (temp.Load())
                 {
-                    Config.Set("lastFile", path);
+                    MainConfig.LastFile = path;
                     Stcm2l = temp;
                     Title = Path.GetFileName(path);
-                    NakeReplics(Replics,Stcm2l);
-                    TextsList.DataContext = this;
+                    Replics = new BindingList<Replic>(Stcm2l.MakeReplics());
                     ReplicWrap.DataContext = null;
                     ShouldSave = false;
                 }
@@ -284,10 +254,6 @@ namespace STCM2LEditor
 
         private void TextsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (TextsList.SelectedItem == null)
-            {
-                return;
-            }
             ReplicWrap.DataContext = TextsList.SelectedItem;
         }
 
@@ -314,13 +280,20 @@ namespace STCM2LEditor
             try
             {
 
-                if (Stcm2l == null || !Stcm2l.Save(Stcm2l.FilePath))
+                if (Stcm2l == null)
                 {
                     Console.WriteLine("Failed to save.");
                 }
                 else
                 {
-                    ShouldSave = false;
+                    foreach (var replic in Replics)
+                    {
+                        replic.InsertTranslates();
+                    }
+                    if (Stcm2l.Save(Stcm2l.FilePath))
+                    {
+                        ShouldSave = false;
+                    }
                 }
             }
             catch (Exception exp)
@@ -345,8 +318,7 @@ namespace STCM2LEditor
 
         private void InsertLine(int index = -1)
         {
-            var translate = LinesList.DataContext as Replic;
-            if (translate != null)
+            if (LinesList.DataContext is Replic translate)
             {
                 translate.AddLine(Stcm2l, index);
                 ShouldSave = true;
@@ -380,10 +352,39 @@ namespace STCM2LEditor
             DeleteText(TextsList.SelectedIndex);
             ReplicWrap.DataContext = null;
         }
+        private void LoadBackup()
+        {
+            if (!File.Exists("main_backup.txt") || MainConfig.NormalClose)
+            {
+                MainConfig.NormalClose = false;
+                return;
+            }
+            var res = MessageBox.Show("Обнаружено аварийное завершений работы приложения. Загрузить бэкап?", "Внимание", MessageBoxButton.YesNo);
+            if (res != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
+            var list = File.ReadAllText("main_backup.txt").Split('\n').Select(x => x.Split('|')).ToList();
+            for (int i = 0; i < Replics.Count; i++)
+            {
+                var replic = Replics[i];
+                var temp = list[i];
+                for (int j = replic.Lines.Count; j < temp.Length; j++)
+                {
+                    replic.Lines[j].TranslatedText = temp[j];
+                }
+            }
+        }
+        private void SaveBackup()
+        {
+            File.WriteAllText("main_backup.txt",
+            string.Join("\n", Replics.Select(x => string.Join("|", x.Lines.Select(y => y.TranslatedText)))));
+        }
         private void TextChanged(object sender, TextChangedEventArgs e)
         {
             ShouldSave = true;
+            SaveBackup();
         }
 
         private void NameWindowCommand(object sender, ExecutedRoutedEventArgs e)
@@ -395,6 +396,7 @@ namespace STCM2LEditor
         private void PackCommand(object sender, ExecutedRoutedEventArgs e)
         {
             var inputDir = ConfigurationManager.AppSettings["INPUT_DIR"];
+
             var csvPath = ConfigurationManager.AppSettings["CSV_PATH"];
             var cpkMakerPath = ConfigurationManager.AppSettings["CPKMAKER_PATH"];
             var cpkPath = ConfigurationManager.AppSettings["CPK_PATH"];
@@ -436,28 +438,31 @@ namespace STCM2LEditor
         }
         private void SetGamePreset(GamePreset preset)
         {
-            if(preset == null)
+            if (preset == null)
             {
                 return;
             }
-            var id = GamePresets.IndexOf(preset);
+            CurrentPreset = preset;
+            var id = GamePresetConfigProvider.Instance.Presets.IndexOf(preset);
 
-            if (preset.NameAction != 0)
+            if (preset.ACTION_NAME != 0)
             {
-                ActionHelpers.ACTION_NAME = preset.NameAction;
+                ActionHelpers.ACTION_NAME = preset.ACTION_NAME;
             }
-            if (preset.TextAction != 0)
+            if (preset.ACTION_TEXT != 0)
             {
-                ActionHelpers.ACTION_TEXT = preset.TextAction;
+                ActionHelpers.ACTION_TEXT = preset.ACTION_TEXT;
             }
-            if (preset.PlaceAction != 0)
+            if (preset.ACTION_PLACE != 0)
             {
-                ActionHelpers.ACTION_PLACE = preset.PlaceAction;
+                ActionHelpers.ACTION_PLACE = preset.ACTION_PLACE;
             }
-            if (preset.DividerAction != 0)
+            if (preset.ACTION_DIVIDER != 0)
             {
-                ActionHelpers.ACTION_DIVIDER = preset.DividerAction;
+                ActionHelpers.ACTION_DIVIDER = preset.ACTION_DIVIDER;
             }
+            EncodingUtil.Current = preset;
+            GamePresetConfigProvider.Instance.Selected = preset;
 
             if (Stcm2l != null)
             {
@@ -506,7 +511,7 @@ namespace STCM2LEditor
             var writer = new StreamWriter(sfd.FileName, false);
             foreach (var item in Replics)
             {
-                if (item.Name.OriginalText != "")
+                if (item.Name != null && item.Name.OriginalText != "")
                     writer.Write($"{item.Name.OriginalText}:");
                 writer.WriteLine(string.Join("|", item.Lines.Select(x => x.OriginalText)));
             }
@@ -586,7 +591,7 @@ namespace STCM2LEditor
 
         private void SettingsCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            var win = new Windows.SettingsWindow();
+            var win = new Wins.SettingsWindow();
             win.ShowDialog();
         }
         class Group
@@ -598,8 +603,8 @@ namespace STCM2LEditor
         {
             if (action.Parameters.Count > 0 && action.Parameters[0] is ILocalParameter param)
             {
-                var str = EncodingUtil.encoding.GetString(param.Data.ExtraData);
-                if(str.Length > 0 && action.OpCode == 22516)
+                var str = CurrentPreset.Encoding.GetString(param.Data.ExtraData);
+                if (str.Length > 0 && action.OpCode == 22516)
                 {
                     Console.WriteLine(str);
                 }
@@ -633,24 +638,24 @@ namespace STCM2LEditor
                 {
                     group = new Group();
                     group.Actions.Add(action);
-                    groups.Add(action.OpCode,group);
+                    groups.Add(action.OpCode, group);
                 }
                 group.CharCount += CharCount(action);
             }
             var item = groups.Aggregate((a, b) => a.Value.CharCount < b.Value.CharCount ? b : a);
-            var result = MessageBox.Show($" Elements with id {item.Key:X} may be is text. Continue?","Attention!",MessageBoxButton.YesNo);
-            if(result != MessageBoxResult.Yes)
+            var result = MessageBox.Show($" Elements with id {item.Key:X} may be is text. Continue?", "Attention!", MessageBoxButton.YesNo);
+            if (result != MessageBoxResult.Yes)
             {
                 return;
             }
             ActionHelpers.ACTION_TEXT = item.Key;
-            for(var i = Stcm2l.Actions.IndexOf(item.Value.Actions[0]); i < Stcm2l.Actions.Count; i++)
+            for (var i = Stcm2l.Actions.IndexOf(item.Value.Actions[0]); i < Stcm2l.Actions.Count; i++)
             {
                 var action = Stcm2l.Actions[i];
-                if(action.OpCode != item.Key)
+                if (action.OpCode != item.Key)
                 {
                     ActionHelpers.ACTION_DIVIDER = action.OpCode;
-                    
+
                     break;
                 }
             }
@@ -663,131 +668,64 @@ namespace STCM2LEditor
 
         private void AddPresetMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var win = new Windows.GamePresetWindow(GamePresets);
-            if (!(bool)win.ShowDialog())
-            {
-                return;
-            }
-            AddGamePreset(win.GamePreset);
-            SaveGamePreset(win.GamePreset);
+            var win = new GamePresetWindow();
+            win.ShowDialog();
         }
-        private void SaveGamePreset(GamePreset preset)
+        private void AddChildMenuItem(MenuItem parent, string name, ICommand command, object parameter = null)
         {
-            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
-            if (!dir.Exists)
+            var child = new MenuItem
             {
-                dir.Create();
-            }
-            var filename = dir.FullName + "\\" + preset.Name + ".dat";
-
-            File.WriteAllText(filename, JsonSerializer.Serialize(preset));
+                Header = name,
+                Command = command,
+                CommandParameter = parameter
+            };
+            parent.Items.Add(child);
         }
         private void AddGamePreset(GamePreset preset)
         {
-            GamePresets.Add(preset);
-            var menu = new MenuItem
-            {
-                Header = preset.Name,
-              
-            };
-            var editMenu = new MenuItem
-            {
-                Header = "_Edit",
-                CommandParameter = preset
-            };
-            editMenu.Click += EditMenu_Click;
-            var openMenu = new MenuItem
-            {
-                Header = "_Open",
-                Command = new CommandBinding(WindowCommands.GamePreset, GamePresetCommand).Command,
-                CommandParameter = preset
-            };
-            var deleteMenu = new MenuItem
-            {
-                Header = "_Delete",
-                CommandParameter = preset
-            };
-            deleteMenu.Click += DeleteMenu_Click;
-            menu.Items.Add(openMenu);
-            menu.Items.Add(editMenu);
-            menu.Items.Add(deleteMenu);
-            GamesPresetMenu.Items.Insert(GamesPresetMenu.Items.Count - 2, menu);
-        }
+            var menu = new MenuItem();
+            menu.SetBinding(MenuItem.HeaderProperty, new Binding(nameof(preset.Name)) { Source = preset });
 
-        private void DeleteMenu_Click(object sender, RoutedEventArgs e)
-        {
-            if(MessageBox.Show("Game preset will be deleted!\nContinue?", "Attenttion!", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
-            {
-                return;
-            }
-            var preset = (sender as MenuItem).CommandParameter as GamePreset;
-            var ind = GamePresets.IndexOf(preset);
-            GamesPresetMenu.Items.RemoveAt(ind);
-            GamePresets.Remove(preset);
-            DeleteGamePreset(preset);
-        }
-        private void DeleteGamePresetFile(string preset_name)
-        {
-            var dir = new DirectoryInfo(Environment.CurrentDirectory + "\\GamePresets");
-            var filename = dir.FullName + "\\" + preset_name + ".dat";
-            File.Delete(filename);
-        }
-        private void DeleteGamePreset(GamePreset preset)
-        {
-            DeleteGamePresetFile(preset.Name);
-        }
-        private void EditMenu_Click(object sender, RoutedEventArgs e)
-        {
-            var menu = sender as MenuItem;
-            var win = new Windows.GamePresetWindow(GamePresets)
-            {
-                GamePreset = menu.CommandParameter as GamePreset
-            };
-            var temp = win.GamePreset.Name;
-            win.ShowDialog();
-            SaveGamePreset(win.GamePreset);
-            if (menu.Parent is MenuItem parent)
-            {
-                parent.Header = win.GamePreset.Name;
-            }
-            if(temp != win.GamePreset.Name)
-            {
-                DeleteGamePresetFile(temp);
-            }
+            AddChildMenuItem(menu, "_Open", WindowCommands.GamePreset, preset);
+            AddChildMenuItem(menu, "_Edit", WindowCommands.EditGamePreset, preset);
+            AddChildMenuItem(menu, "_Delete", WindowCommands.DeleteGamePreset, preset);
+            GamesPresetMenu.Items.Insert(GamesPresetMenu.Items.Count - 2, menu);
         }
 
         private void AddPresetByCurrent_Click(object sender, RoutedEventArgs e)
         {
             var preset = new GamePreset
             {
-                NameAction = ActionHelpers.ACTION_NAME,
-                TextAction = ActionHelpers.ACTION_TEXT,
-                PlaceAction = ActionHelpers.ACTION_PLACE,
-                DividerAction = ActionHelpers.ACTION_DIVIDER,
+                ACTION_NAME = ActionHelpers.ACTION_NAME,
+                ACTION_TEXT = ActionHelpers.ACTION_TEXT,
+                ACTION_PLACE = ActionHelpers.ACTION_PLACE,
+                ACTION_DIVIDER = ActionHelpers.ACTION_DIVIDER,
             };
-            var win = new Windows.GamePresetWindow(GamePresets)
-            {
-                GamePreset = preset
-            };
-            if (!(bool)win.ShowDialog())
-            {
-                return;
-            }
-            AddGamePreset(preset);
-            SaveGamePreset(preset);
+            var win = new GamePresetWindow(preset);
+            win.ShowDialog();
         }
 
         private void ExportFilesMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var ofd = new OpenFileDialog();
-            ofd.Multiselect = true;
+            var win = new SelectPresetWindow();
+            if (!(bool)win.ShowDialog())
+            {
+                return;
+            }
+            var ofd = new OpenFileDialog
+            {
+                Multiselect = true
+            };
             if (!(bool)ofd.ShowDialog())
             {
                 return;
             }
-            var fbd = new System.Windows.Forms.FolderBrowserDialog();
-            fbd.ShowNewFolderButton = true;
-            if(fbd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+
+            var fbd = new System.Windows.Forms.FolderBrowserDialog
+            {
+                ShowNewFolderButton = true
+            };
+            if (fbd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
             {
                 return;
             }
@@ -796,22 +734,285 @@ namespace STCM2LEditor
             {
                 dir.Create();
             }
-            foreach(var filepath in ofd.FileNames)
+            foreach (var filepath in ofd.FileNames)
             {
-                var file = new STCM2L(filepath);
+                var file = new STCM2L(filepath, win.SelectedPreset);
                 file.Load();
-                
-                var newpath = Path.Combine(dir.FullName,Path.GetFileNameWithoutExtension(filepath)+".txt");
-                var outfile = new StreamWriter(newpath,false);
-                var replics = new List<Replic>();
-                NakeReplics(replics, file);
 
-                foreach(var replic in replics)
+                var newpath = Path.Combine(dir.FullName, Path.GetFileNameWithoutExtension(filepath) + ".txt");
+                var outfile = new StreamWriter(newpath, false);
+                var replics = file.MakeReplics();
+
+                foreach (var replic in replics)
                 {
-                    var text = string.Join("|", replic.Lines.Select(x => x.TranslatedText));
+                    var text = string.Join(" ", replic.Lines.Select(x => x.TranslatedText));
                     outfile.WriteLine(text);
                 }
                 outfile.Close();
+            }
+        }
+
+        private void ResizeTextBoxCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is TextBox textBox)
+            {
+                textBox.MaxLength += 10;
+            }
+        }
+
+        private void SwitchTextCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach (var replic in Replics)
+            {
+                foreach (var line in replic.Lines)
+                {
+                    line.TranslatedText = line.OriginalText;
+                }
+            }
+        }
+
+        private void DeleteGamePresetCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (MessageBox.Show("Game preset will be deleted!\nContinue?", "Attenttion!", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            var preset = e.Parameter as GamePreset as GamePreset;
+
+            var ind = GamePresetConfigProvider.Instance.Presets.IndexOf(preset);
+            GamesPresetMenu.Items.RemoveAt(ind);
+            GamePresetConfigProvider.Instance.Presets.Remove(preset);
+            preset.Delete();
+        }
+
+        private void EditGamePresetCommand(object sender, ExecutedRoutedEventArgs e)
+        {
+            var win = new GamePresetWindow(e.Parameter as GamePreset);
+            win.ShowDialog();
+        }
+
+        private void MetroWindow_Drop(object sender, DragEventArgs e)
+        {
+            base.OnDrop(e);
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var obj = e.Data.GetData(DataFormats.FileDrop);
+                var files = obj as string[];
+                var path = files[0];
+                OpenFile(path);
+            }
+            e.Handled = true;
+        }
+
+        private void MetroWindow_Closed(object sender, EventArgs e)
+        {
+            MainConfig.NormalClose = true;
+        }
+
+        private void OpenInActionView_Click(object sender, RoutedEventArgs e)
+        {
+            var replic = TextsList.SelectedItem as Replic;
+            var win = new ActionsView(Stcm2l);
+            if (replic.Name != null)
+            {
+                win.PreLoad = replic.Name;
+            }
+            else
+            {
+                win.PreLoad = replic.Lines.First();
+            }
+            win.Show();
+        }
+
+        private void ReplaceDotsCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            foreach(var te in Replics)
+            {
+                foreach(var line in te.Lines)
+                {
+                    line.TranslatedText = line.TranslatedText.Replace("…","...");
+                    var eval = new MatchEvaluator(delegate(Match match){
+                        var main = match.Groups["main"];
+                        var value = match.Value;
+                        return value.Substring(0,1) + main + " " + value.Substring(value.Length - 1);
+                    });
+                    line.TranslatedText = Regex.Replace(line.TranslatedText, @"\w(?<main>(\.\.\.)+)\w",eval);
+                }
+            }
+        }
+
+        private void MoveLineCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var txt = e.OriginalSource as TextBox;
+            if(!bool.TryParse(e.Parameter as string, out var direction))
+            {
+                return;
+            }
+            if (direction)
+            {
+                ToNextLine(txt);
+            }
+            else
+            {
+                ToPrevLine(txt);
+            }
+        }
+
+        private void ToPrevLine(TextBox txt)
+        {
+            var str = txt.DataContext as TextAction;
+            var te = LinesList.DataContext as Replic;
+            var ind = te.Lines.IndexOf(str) - 1;
+            var text = " " + txt.Text.Substring(0, txt.CaretIndex).Trim();
+            txt.Text = txt.Text.Substring(txt.CaretIndex).Trim();
+            if (ind == -1)
+            {
+                te.AddLine(Stcm2l, 0);
+                ind = 0;
+            }
+            te.Lines[ind].TranslatedText = (te.Lines[ind].TranslatedText + text).Trim();
+            try
+            {
+                FocusTextBox(LinesList, ind, te.Lines[ind].TranslatedText.Length, txt.Name);
+            }
+            catch
+            {
+
+            }
+        }
+        private void ToNextLine(TextBox txt)
+        {
+            var str = txt.DataContext as TextAction;
+            var te = LinesList.DataContext as Replic;
+            var ind = te.Lines.IndexOf(str) + 1;
+            var text = txt.Text.Substring(txt.CaretIndex) + " ";
+            txt.Text = txt.Text.Substring(0, txt.CaretIndex).Trim();
+            if (te.Lines.Count <= ind)
+            {
+                te.AddLine(Stcm2l);
+            }
+            te.Lines[ind].TranslatedText = (text + te.Lines[ind].TranslatedText).Trim();
+            try
+            {
+                FocusTextBox(LinesList, ind, text.Length, txt.Name);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void FocusTextBox(ListView list, int ind, int caret, string name)
+        {
+            var visualItem = list.ItemContainerGenerator.
+                ContainerFromItem(list.Items[ind]);
+            var listViewItem = visualItem as ListViewItem;
+
+            var myContentPresenter = FindVisualChild<ContentPresenter>(listViewItem);
+
+            var myDataTemplate = myContentPresenter.ContentTemplate;
+            var myTextBox = (TextBox)myDataTemplate.FindName(name, myContentPresenter);
+            myTextBox.Focus();
+            if (myTextBox.CaretIndex != 0)
+            {
+                return;
+            }
+            if (caret > myTextBox.Text.Length)
+            {
+                myTextBox.CaretIndex = myTextBox.Text.Length;
+            }
+            else
+            {
+                myTextBox.CaretIndex = caret;
+            }
+        }
+        private childItem FindVisualChild<childItem>(DependencyObject obj)
+    where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                {
+                    return (childItem)child;
+                }
+                else
+                {
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                        return childOfChild;
+                }
+            }
+            return null;
+        }
+
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBox txt)
+            {
+                if (e.XButton1 == MouseButtonState.Pressed && txt.IsFocused)
+                {
+                    /*if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                    {
+                        var temp = txt.DataContext as TextEntity.MyString;
+                        var te = LinesList2.DataContext as TextEntity;
+                        var ind = te.Lines.IndexOf(temp);
+                        if (ind == 0)
+                        {
+                            if (te.Lines.Count == 1)
+                            {
+                                e.Handled = true;
+                                return;
+                            }
+                            ind = 1;
+
+                        }
+                        ToNextText(te, ind);
+                    }
+                    else */if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        var temp = txt.DataContext as TextAction;
+                        var te = LinesList.DataContext as Replic;
+                        var ind = te.Lines.IndexOf(temp) + 1;
+                        te.AddLine(Stcm2l, ind);
+                    }
+                    else
+                    {
+                        ToNextLine(txt);
+                    }
+                    e.Handled = true;
+                }
+                else if (e.XButton2 == MouseButtonState.Pressed && txt.IsFocused)
+                {
+                    /*if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                    {
+                        var temp = txt.DataContext as TextEntity.MyString;
+                        var te = LinesList2.DataContext as TextEntity;
+                        var ind = te.Lines.IndexOf(temp);
+                        if (ind == te.Lines.Count - 1)
+                        {
+                            if (ind == 0)
+                            {
+                                e.Handled = true;
+                                return;
+                            }
+                            ind--;
+                        }
+                        ToPrevText(te, ind);
+                    }
+                    else*/ if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                    {
+                        var temp = txt.DataContext as TextAction;
+                        var te = LinesList.DataContext as Replic;
+                        var ind = te.Lines.IndexOf(temp);
+                        te.AddLine(Stcm2l, ind);
+                    }
+                    else
+                    {
+                        ToPrevLine(txt);
+                    }
+                    e.Handled = true;
+                }
             }
         }
     }

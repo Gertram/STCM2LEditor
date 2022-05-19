@@ -7,44 +7,44 @@ namespace STCM2LEditor.classes.Action.Parameters
         public uint Type { get; set; }
         public uint Value { get; set; }
         public int Address { get; set; }
-        public StringData()
-        {
-            Type = 0;
-            Value = 0;
-            ExtraData = new byte[0];
-        }
+        private IGameEncoding Encoding { get; set; }
+        public StringData(IGameEncoding encoding):this(0,0,new byte[0],encoding){}
         public StringData Copy()
         {
-            return new StringData();
+            return new StringData(Type,Value,ExtraData,Encoding,Address);
         }
-        public StringData(uint type, uint value, byte[] extraData)
+        public StringData(uint type, uint value, byte[] extraData,IGameEncoding encoding,int address = 0)
         {
             Type = type;
             Value = value;
             ExtraData = extraData;
+            Address = address;
+            Encoding = encoding;
         }
-        public StringData(IParameterData data)
-        {
-            Type = data.Type;
-            Value = data.Value;
-            Address = data.Address;
-            ExtraData = data.ExtraData;
-        }
-        public static StringData TryCreateNew(IParameterData data)
+        public StringData(IParameterData data,IGameEncoding encoding):this(data.Type,data.Value,data.ExtraData,encoding,data.Address){}
+        public static StringData TryCreateNew(IParameterData data,IGameEncoding encoding)
         {
             if (data.Address <= 0)
             {
                 return null;
             }
-            return new StringData(data);
+            return new StringData(data,encoding);
         }
-        public static StringData ReadFromFile(byte[] file, int seek) => new StringData(new ParameterData(file, seek));
+        public static StringData ReadFromFile(byte[] file, int seek,IGameEncoding encoding)
+        {
+            var data = ParameterData.ReadFromFile(file, seek);
+            if(data == null)
+            {
+                return null;
+            }
+            return new StringData(data,encoding);
+        }
         public string Text
         {
-            get => EncodingUtil.encoding.GetString(ExtraData.ToArray()).TrimEnd(new char[] { '\0' });
+            get => Encoding.Encoding.GetString(ExtraData.ToArray()).TrimEnd(new char[] { '\0' });
             set
             {
-                ExtraData = EncodingUtil.encoding.GetBytes(value + "\0");
+                ExtraData = Encoding.Encoding.GetBytes(value + "\0");
             }
         }
         public byte[] ExtraData { get; set; }

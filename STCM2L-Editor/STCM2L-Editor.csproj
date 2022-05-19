@@ -199,16 +199,21 @@
     <Compile Include="classes\Action\BaseStrignAction.cs" />
     <Compile Include="classes\Action\PlaceAction.cs" />
     <Compile Include="classes\Action\Parameters\StringParameter.cs" />
+    <Compile Include="classes\IActionSettings.cs" />
     <Compile Include="classes\InvalidFileType.cs" />
     <Compile Include="classes\IString.cs" />
     <Compile Include="classes\STCM2LHelpers.cs" />
+    <Compile Include="GamePresets\GamePresetConfig.cs" />
+    <Compile Include="GamePresets\GamePresetConfigProvider.cs" />
+    <Compile Include="GamePresets\IGamePresetConfig.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="utils\Config.cs" />
-    <Compile Include="Windows\Converters\ActionExtraData.cs" />
-    <Compile Include="Windows\Converters\ActionLocalCall.cs" />
-    <Compile Include="Windows\Converters\IntHexConverter.cs" />
-    <Compile Include="Windows\Converters\ActionParametersSum.cs" />
-    <Compile Include="Windows\Converters\ActionNameConverter.cs" />
-    <Compile Include="Windows\ActionsVIew.xaml.cs">
+    <Compile Include="Wins\Converters\ActionExtraData.cs" />
+    <Compile Include="Wins\Converters\ActionLocalCall.cs" />
+    <Compile Include="Wins\Converters\IntHexConverter.cs" />
+    <Compile Include="Wins\Converters\ActionParametersSum.cs" />
+    <Compile Include="Wins\Converters\ActionNameConverter.cs" />
+    <Compile Include="Wins\ActionsVIew.xaml.cs">
       <DependentUpon>ActionsVIew.xaml</DependentUpon>
     </Compile>
     <Compile Include="classes\Action\Parameters\BaseParameter.cs" />
@@ -221,62 +226,72 @@
     <Compile Include="classes\Action\Parameters\IParameterHelpers.cs" />
     <Compile Include="classes\Action\Parameters\LocalParameter.cs" />
     <Compile Include="classes\Action\Parameters\ParameterData.cs" />
-    <Compile Include="Windows\Converters\ParameterLengthConverter.cs" />
-    <Compile Include="Windows\Converters\ParamterExtraTextConverter.cs" />
+    <Compile Include="Wins\Converters\ParameterLengthConverter.cs" />
+    <Compile Include="Wins\Converters\ParamterExtraTextConverter.cs" />
     <Compile Include="classes\Action\Parameters\StringData.cs" />
     <Compile Include="classes\TextEntity.cs" />
-    <Compile Include="Windows\FindDialog.xaml.cs">
+    <Compile Include="Wins\Converters\SuffixConverter.cs" />
+    <Compile Include="Wins\Converters\TextBoxColorConverter.cs" />
+    <Compile Include="Wins\FindDialog.xaml.cs">
       <DependentUpon>FindDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\GamePrest.xaml.cs">
-      <DependentUpon>GamePrest.xaml</DependentUpon>
+    <Compile Include="GamePresets\GamePreset.cs" />
+    <Compile Include="Wins\GamePreset.xaml.cs">
+      <DependentUpon>GamePreset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\ImportTextWindow.xaml.cs">
+    <Compile Include="Wins\ImportTextWindow.xaml.cs">
       <DependentUpon>ImportTextWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\ImportWindow.xaml.cs">
+    <Compile Include="Wins\ImportWindow.xaml.cs">
       <DependentUpon>ImportWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="IniFile.cs" />
-    <Compile Include="Windows\NamesView.xaml.cs">
+    <Compile Include="Wins\MainConfig.cs" />
+    <Compile Include="Wins\NamesAutochangeWindow.xaml.cs">
+      <DependentUpon>NamesAutochangeWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wins\NamesView.xaml.cs">
       <DependentUpon>NamesView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\Converters\ParameterTextConverter.cs" />
-    <Compile Include="Windows\Converters\ParameterTypeConverter.cs" />
-    <Compile Include="Windows\Converters\ParamterExtraValueConverter.cs" />
-    <Compile Include="Windows\PlaceWindow.xaml.cs">
+    <Compile Include="Wins\Converters\ParameterTextConverter.cs" />
+    <Compile Include="Wins\Converters\ParameterTypeConverter.cs" />
+    <Compile Include="Wins\Converters\ParamterExtraValueConverter.cs" />
+    <Compile Include="Wins\PlaceWindow.xaml.cs">
       <DependentUpon>PlaceWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\Converters\TranslateConverter.cs" />
+    <Compile Include="Wins\Converters\TranslateConverter.cs" />
     <Compile Include="classes\Replic.cs" />
     <Compile Include="classes\Translator.cs" />
     <Compile Include="utils\ByteUtil.cs" />
     <Compile Include="utils\EncodingUtil.cs" />
-    <Compile Include="Windows\SettingsWindow.xaml.cs">
+    <Compile Include="Wins\SelectPresetWindow.xaml.cs">
+      <DependentUpon>SelectPresetWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Wins\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\WindowCommands.cs" />
-    <Page Include="Windows\ActionsVIew.xaml">
+    <Compile Include="Wins\WindowCommands.cs" />
+    <Page Include="Wins\ActionsVIew.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\FindDialog.xaml">
+    <Page Include="Wins\FindDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\GamePrest.xaml">
+    <Page Include="Wins\GamePreset.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\ImportTextWindow.xaml">
+    <Page Include="Wins\ImportTextWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\ImportWindow.xaml">
+    <Page Include="Wins\ImportWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\MainWindow.xaml">
+    <Page Include="Wins\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -288,19 +303,27 @@
     <Compile Include="classes\Export.cs" />
     <Compile Include="classes\Action\Parameters\Parameter.cs" />
     <Compile Include="classes\STCM2L.cs" />
-    <Compile Include="Windows\MainWindow.xaml.cs">
+    <Compile Include="Wins\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Windows\NamesView.xaml">
+    <Page Include="Wins\NamesAutochangeWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\PlaceWindow.xaml">
+    <Page Include="Wins\NamesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\SettingsWindow.xaml">
+    <Page Include="Wins\PlaceWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wins\SelectPresetWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wins\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

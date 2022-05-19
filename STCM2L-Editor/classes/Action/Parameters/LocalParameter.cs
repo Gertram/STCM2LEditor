@@ -12,13 +12,23 @@
         {
             Data = data;
         }
-        internal LocalParameter(byte[] file, Parameter parameter) : this(parameter, new ParameterData(file, (int)parameter.Value1))
+        internal static LocalParameter ReadFromFile(byte[] file, Parameter parameter)
         {
-
+            var data = ParameterData.ReadFromFile(file, (int)parameter.Value1);
+            if(data != null)
+            {
+                return new LocalParameter(parameter, data);
+            }
+            return null;
         }
         public static LocalParameter ReadFromFile(byte[] file, ref int seek)
         {
-            return new LocalParameter(file, new Parameter(file, ref seek));
+            var par = Parameter.ReadFromFile(file, ref seek);
+            if(par == null)
+            {
+                return null;
+            }
+            return LocalParameter.ReadFromFile(file, par);
         }
         internal LocalParameter(Parameter param, IParameterData data)
         {
