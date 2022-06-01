@@ -122,7 +122,7 @@ namespace STCM2LEditor.classes
             var newReplic = new Replic(name,new BindingList<TextAction>(texts));
             return newReplic;
         }
-
+        public bool DirectInsert { get; set; } = false;
         internal List<Replic> MakeReplics()
         {
             var replics = new List<Replic>();

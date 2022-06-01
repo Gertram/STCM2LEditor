@@ -236,6 +236,9 @@
       <DependentUpon>FindDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="GamePresets\GamePreset.cs" />
+    <Compile Include="Wins\FindInFilesWindow.xaml.cs">
+      <DependentUpon>FindInFilesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Wins\GamePreset.xaml.cs">
       <DependentUpon>GamePreset.xaml</DependentUpon>
     </Compile>
@@ -276,6 +279,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Wins\FindDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Wins\FindInFilesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

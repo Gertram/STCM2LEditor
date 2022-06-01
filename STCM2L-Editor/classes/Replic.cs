@@ -38,6 +38,7 @@ namespace STCM2LEditor
                 action = file.NewText(Lines[index], true);
             }
             action.TranslatedText = "";
+            action.OriginalText = "";
             Lines.Insert(index, action);
         }
         internal void InsertTranslates()

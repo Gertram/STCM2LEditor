@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:local="clr-namespace:STCM2LEditor"
+    xmlns:wins="clr-namespace:STCM2LEditor.Wins"
         xmlns:presets="clr-namespace:STCM2LEditor.GamePresets"
     AllowDrop="True"
     x:Name="root"
@@ -43,10 +44,12 @@
         <CommandBinding Command="local:WindowCommands.EditGamePreset" Executed="EditGamePresetCommand" x:Name="EditGamePresetCommandBinding"/>
         <CommandBinding Command="local:WindowCommands.ReplaceDots" Executed="ReplaceDotsCommandBinding_Executed" x:Name="ReplaceDotsCommandBinding"/>
         <CommandBinding Command="local:WindowCommands.MoveLine" Executed="MoveLineCommandBinding_Executed" x:Name="MoveLineCommandBinding"/>
+        <CommandBinding Command="local:WindowCommands.Find" Executed="FindCommandBinding_Executed" x:Name="FindCommandBinding"/>
         
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+O" Command="Open"/>
+        <KeyBinding Gesture="Ctrl+F" Command="local:WindowCommands.Find"/>
         <KeyBinding Gesture="Ctrl+I" Command="local:WindowCommands.Import"/>
         <KeyBinding Gesture="Ctrl+S" Command="Save"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="SaveAs"/>
@@ -78,6 +81,7 @@
                     InputGestureText="Ctrl+Shift+S"
                 />
                 <MenuItem Header="_ExportFiles" x:Name="ExportFilesMenuItem" Click="ExportFilesMenuItem_Click"/>
+                <MenuItem Header="_FindInFiles" x:Name="FindInFilesMenuItem" Click="FindInFilesMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_Import" Command="local:WindowCommands.Import" InputGestureText="Ctrl+I"/>
             <MenuItem Header="_View">
@@ -145,9 +149,12 @@
                   DataContext="{Binding ElementName=TextsList, Path=SelectedItem,Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" DataContext="{Binding Path=Name, Mode=OneWay}">
+                <CheckBox Content="Direct Insert" Grid.Row="0" HorizontalAlignment="Right"
+                          IsChecked="{Binding ElementName=root, Path=Stcm2l.DirectInsert, Mode=TwoWay}" Margin="20,0"/>
+                    <Grid Grid.Row="1" DataContext="{Binding Path=Name, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="200"/>
@@ -191,7 +198,7 @@
                         Click="AddNewLineClick"
                     />
                 </Grid>
-                <ListView Grid.Row="1" ItemsSource="{Binding Path=Lines, Mode=OneWay}" Name="LinesList">
+                <ListView Grid.Row="2" ItemsSource="{Binding Path=Lines, Mode=OneWay}" Name="LinesList">
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Insert new line:">
@@ -209,6 +216,7 @@
                                     <ColumnDefinition Width="1*"></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
                                 <TextBox 
+                                    FontSize="{Binding Mode=OneWay,Source={x:Static wins:MainConfig.FontSize},Path=Value}"
                                     Grid.Column="0"
                                 DockPanel.Dock="Left" 
                                 Text="{Binding Path=OriginalText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
@@ -218,6 +226,7 @@
                                 HorizontalAlignment="Left"
                             />
                                 <TextBox 
+                                    FontSize="{Binding Mode=OneWay,Source={x:Static wins:MainConfig.FontSize},Path=Value}"
                                     Grid.Column="1"
                                     SpellCheck.IsEnabled="True"
                                     Name="TextBox"

@@ -29,6 +29,46 @@ namespace STCM2LEditor.Wins
             set => Config.Set("AutotranslateImport", value.ToString());
         }
     }
+    public class IntValue
+    {
+        private string name;
+        private int __default;
+        internal IntValue(string name, int @default = 0)
+        {
+            this.name = name;
+            __default = @default;
+
+        }
+        public int Value
+        {
+
+            get
+            {
+                var str = Config.Get(name);
+                if(str == null)
+                {
+                    return __default;
+                }
+                return int.Parse(Config.Get(name));
+            }
+
+            set => Config.Set(name, value.ToString());
+        }
+    }
+    public class StringValue
+    {
+        private string name;
+        internal StringValue(string name)
+        {
+            this.name = name;
+        }
+        public string Value
+        {
+
+            get => Config.Get(name);
+            set => Config.Set(name, value);
+        }
+    }
     public static partial class MainConfig
     {
         static MainConfig()
@@ -41,16 +81,14 @@ namespace STCM2LEditor.Wins
             get => Config.Get("lastFile");
             set => Config.Set("lastFile", value);
         }
+        public static IntValue AutoSaveTimer = new IntValue("AutoSaveTimer",60000);
         public static string LastGamePreset
         {
             get => Config.Get("LastGamePreset");
             set => Config.Set("LastGamePreset", value);
         }
-        public static string WorkDirectory
-        {
-            get => Config.Get("WorkDirectory");
-            set => Config.Set("WorkDirectory", value);
-        }
+        public static StringValue WorkDirectory => new StringValue("WorkDirectory");
+        public static IntValue FontSize => new IntValue("FontSize",14);
         public static BoolValue AutotranslateImport => new BoolValue();
         public static string EngTextDirectory
         {
@@ -59,7 +97,7 @@ namespace STCM2LEditor.Wins
         }
         public static string TranslateBackupFile
         {
-            get => Config.Get("TranslateBackup");
+            get => Config.Get("TranslateBackup") ?? "TranslateBackups";
             set => Config.Set("TranslateBackup", value);
         }
         public class NameEntries

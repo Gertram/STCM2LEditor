@@ -21,12 +21,22 @@ using STCM2LEditor.utils;
 using STCM2LEditor.classes.Action;
 using STCM2LEditor.classes.Action.Parameters;
 using STCM2LEditor.GamePresets;
-
 using STCM2LEditor.Wins;
+using System.Text.Json;
 
 namespace STCM2LEditor
 {
-    public partial class MainWindow : MetroWindow, INotifyPropertyChanged
+    class PackerSettings
+    {
+        public string INPUT_DIR { get; set; }
+        public string ISO_FILE { get; set; }
+        public string ULTRAISO_PATH { get; set; }
+        public string CPKMAKER_PATH { get; set; }
+        public string CSV_PATH { get; set; }
+        public string CPK_PATH { get; set; }
+        public string EBOOT_PATH { get; set; }
+    }
+    public partial class MainWindow : MetroWindow, INotifyPropertyChanged,Findable
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private void SendChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
@@ -76,11 +86,21 @@ namespace STCM2LEditor
 
             LoadLastFile();
 
-            if (DateTime.Now >= new DateTime(2022, 12, 1))
+
+            aTimer = new System.Timers.Timer
             {
-                throw new Exception();
-            }
+                Interval = MainConfig.AutoSaveTimer.Value
+            };
+            aTimer.Elapsed += ATimer_Elapsed;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
         }
+
+        private void ATimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            SaveBackup();
+        }
+
         private void LoadGamePresets()
         {
             GamePresetConfigProvider.Instance.Presets.CollectionChanged += Presets_CollectionChanged;
@@ -128,7 +148,10 @@ namespace STCM2LEditor
                 switch (saveWarning)
                 {
                     case MessageBoxResult.Yes:
-                        SaveAsCommand(null, null);
+                        if(!SaveAs())
+                        {
+                            e.Cancel = true;
+                        }
                         break;
                     case MessageBoxResult.No:
                         break;
@@ -205,7 +228,7 @@ namespace STCM2LEditor
 
             var openFileDialog = new OpenFileDialog
             {
-                InitialDirectory = MainConfig.WorkDirectory
+                InitialDirectory = MainConfig.WorkDirectory.Value
             };
             if (openFileDialog.ShowDialog() == true)
             {
@@ -219,6 +242,7 @@ namespace STCM2LEditor
                 }
             }
         }
+        private static System.Timers.Timer aTimer; 
 
         private void OpenFile(string path)
         {
@@ -236,6 +260,7 @@ namespace STCM2LEditor
                     Replics = new BindingList<Replic>(Stcm2l.MakeReplics());
                     ReplicWrap.DataContext = null;
                     ShouldSave = false;
+
                 }
                 else
                 {
@@ -257,22 +282,25 @@ namespace STCM2LEditor
             ReplicWrap.DataContext = TextsList.SelectedItem;
         }
 
-        private void SaveAsCommand(object sender, ExecutedRoutedEventArgs e)
+        private void SaveAsCommand(object sender, ExecutedRoutedEventArgs e) => SaveAs();
+        private bool SaveAs()
         {
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-            if (saveFileDialog.ShowDialog() == true)
+            if (!(bool)saveFileDialog.ShowDialog())
             {
-                if (Stcm2l == null || !Stcm2l.Save(saveFileDialog.FileName))
-                {
-                    Console.WriteLine("Failed to save.");
-                }
-                else
-                {
-                    OpenFile(saveFileDialog.FileName);
-                    ShouldSave = false;
-                }
+                return false;
             }
+            if (Stcm2l == null || !Stcm2l.Save(saveFileDialog.FileName))
+            {
+                Console.WriteLine("Failed to save.");
+                return false;
+            }
+            OpenFile(saveFileDialog.FileName);
+            ShouldSave = false;
+
+            return true;
         }
 
         private void SaveCommand(object sender, ExecutedRoutedEventArgs e)
@@ -378,13 +406,16 @@ namespace STCM2LEditor
         }
         private void SaveBackup()
         {
+            if(Stcm2l == null || Replics == null)
+            {
+                return;
+            }
             File.WriteAllText("main_backup.txt",
             string.Join("\n", Replics.Select(x => string.Join("|", x.Lines.Select(y => y.TranslatedText)))));
         }
         private void TextChanged(object sender, TextChangedEventArgs e)
         {
             ShouldSave = true;
-            SaveBackup();
         }
 
         private void NameWindowCommand(object sender, ExecutedRoutedEventArgs e)
@@ -395,21 +426,31 @@ namespace STCM2LEditor
 
         private void PackCommand(object sender, ExecutedRoutedEventArgs e)
         {
-            var inputDir = ConfigurationManager.AppSettings["INPUT_DIR"];
+            var pack = JsonSerializer.Deserialize<PackerSettings>(File.ReadAllText("pack.json"));/*
+            pack.INPUT_DIR = "D:\\Diabolik lovers\\Work\\DL";
+            pack.ISO_FILE = "D:\\Diabolik lovers\\Work\\dl.ISO";
+            pack.ULTRAISO_PATH = "C:\\Program Files (x86)\\UltraISO\\UltraISO.exe";
+            pack.CPKMAKER_PATH = "D:\\Downloads\\CRI2.40.13.0\\crifilesystem\\cpkmakec.exe";
+            pack.CSV_PATH = "D:\\Diabolik lovers\\Work\\DL.CSV";
+            pack.CPK_PATH = "D:\\Diabolik lovers\\Work\\INSTALL.DNS";
+            pack.EBOOT_PATH = "D:\\Diabolik lovers\\Work\\EBOOT.BIN";
+            File.WriteAllText("pack.json", JsonSerializer.Serialize(pack));*/
 
-            var csvPath = ConfigurationManager.AppSettings["CSV_PATH"];
-            var cpkMakerPath = ConfigurationManager.AppSettings["CPKMAKER_PATH"];
-            var cpkPath = ConfigurationManager.AppSettings["CPK_PATH"];
-            var ebootPath = ConfigurationManager.AppSettings["EBOOT_PATH"];
-            var output = ConfigurationManager.AppSettings["ISO_FILE"];
-            var ultraISOPath = ConfigurationManager.AppSettings["ULTRAISO_PATH"];
+            var inputDir = pack.INPUT_DIR;//ConfigurationManager.AppSettings["INPUT_DIR"];
+
+            var csvPath = pack.CSV_PATH;// ConfigurationManager.AppSettings["CSV_PATH"];
+            var cpkMakerPath = pack.CPKMAKER_PATH;// ConfigurationManager.AppSettings["CPKMAKER_PATH"];
+            var cpkPath = pack.CPK_PATH; //ConfigurationManager.AppSettings["CPK_PATH"];
+            var ebootPath = pack.EBOOT_PATH;// ConfigurationManager.AppSettings["EBOOT_PATH"];
+            var output = pack.ISO_FILE;// ConfigurationManager.AppSettings["ISO_FILE"];
+            var ultraISOPath = pack.ULTRAISO_PATH;// ConfigurationManager.AppSettings["ULTRAISO_PATH"];
             var writer = new StreamWriter(csvPath, false);
             int i = 0;
             foreach (var file in Directory.EnumerateFiles(inputDir, "*", SearchOption.AllDirectories))
             {
                 var localName = file.Substring(inputDir.Length + 1).Replace("\\", "/");
                 var fileName = file.Replace("\\", "/");
-                writer.WriteLine(@"{0},{1},{2},Uncompress", fileName, localName, i);
+                writer.WriteLine(@"{0},{1},{2},Compress", fileName, localName, i);
                 i++;
             }
             writer.Close();
@@ -828,15 +869,37 @@ namespace STCM2LEditor
         {
             foreach(var te in Replics)
             {
+                TextAction prev = null;
                 foreach(var line in te.Lines)
                 {
                     line.TranslatedText = line.TranslatedText.Replace("…","...");
+                    line.TranslatedText = line.TranslatedText.Replace("!..","...!");
+                    line.TranslatedText = line.TranslatedText.Replace("?..","...?");
+                    line.TranslatedText = line.TranslatedText.Replace("≪", "\"");
+                    line.TranslatedText = line.TranslatedText.Replace("≫", "\"");
                     var eval = new MatchEvaluator(delegate(Match match){
                         var main = match.Groups["main"];
                         var value = match.Value;
                         return value.Substring(0,1) + main + " " + value.Substring(value.Length - 1);
                     });
+                    var eval2 = new MatchEvaluator(delegate (Match match)
+                    {
+                        var main = match.Groups["main"];
+                        var value = match.Value;
+                        
+                        return value.Substring(0, main.Index- match.Index) + "." + main;
+                    });
                     line.TranslatedText = Regex.Replace(line.TranslatedText, @"\w(?<main>(\.\.\.)+)\w",eval);
+                    line.TranslatedText = Regex.Replace(line.TranslatedText, @"(\w(?<main>(\.\.[\!\?]])))|(\w(?<main>(\.\.))$)|(^(?<main>(\.\.))$)", eval2);
+
+                    if(prev != null && line.TranslatedText.Length > 0)
+                    {
+                        if((new char[] {','}.Contains(prev.TranslatedText.Last()) || char.IsLetter(prev.TranslatedText.Last())) && char.IsUpper(line.TranslatedText.First()))
+                        {
+                            line.TranslatedText = line.TranslatedText.Substring(0, 1).ToLower() + line.TranslatedText.Substring(1);
+                        }
+                    }
+                    prev = line;
                 }
             }
         }
@@ -950,7 +1013,7 @@ namespace STCM2LEditor
         {
             if (sender is TextBox txt)
             {
-                if (e.XButton1 == MouseButtonState.Pressed && txt.IsFocused)
+                if (e.XButton2 == MouseButtonState.Pressed && txt.IsFocused)
                 {
                     /*if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                     {
@@ -982,7 +1045,7 @@ namespace STCM2LEditor
                     }
                     e.Handled = true;
                 }
-                else if (e.XButton2 == MouseButtonState.Pressed && txt.IsFocused)
+                else if (e.XButton1 == MouseButtonState.Pressed && txt.IsFocused)
                 {
                     /*if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
                     {
@@ -1014,6 +1077,36 @@ namespace STCM2LEditor
                     e.Handled = true;
                 }
             }
+        }
+
+        private void FindCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var win = new FindDialog(this);
+            win.Show();
+        }
+
+        public bool find(string text)
+        {
+            if(Stcm2l == null)
+            {
+                return false;
+            }
+            foreach(var replic in Replics)
+            {
+                if(replic.Lines.Any(x => x.TranslatedText.Contains(text)))
+                {
+                    TextsList.ScrollIntoView(replic);
+                    TextsList.SelectedItem = replic;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void FindInFilesMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new FindInFilesWindow();
+            win.ShowDialog();
         }
     }
 }

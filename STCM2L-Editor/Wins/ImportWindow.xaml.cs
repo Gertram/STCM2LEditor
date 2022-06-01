@@ -562,7 +562,7 @@ namespace STCM2LEditor
                 {
                     temp = temp.Substring(pos + 1).Trim();
                 }
-                foreach (var line in temp.Split(new char[] { '|' }))
+                /*foreach (var line in temp.Split(new char[] { '|' }))
                 {
                     temp = line;
                     for (int i = 0; i < temp.Length; i++)
@@ -574,7 +574,7 @@ namespace STCM2LEditor
                         }
                     }
                     te.Lines.Add(new TextEntity.MyString { Text = temp });
-                }
+                }*/
                 TranslatedTexts.Add(te);
             }
         }
