@@ -450,7 +450,7 @@ namespace STCM2LEditor
             {
                 var localName = file.Substring(inputDir.Length + 1).Replace("\\", "/");
                 var fileName = file.Replace("\\", "/");
-                writer.WriteLine(@"{0},{1},{2},Compress", fileName, localName, i);
+                writer.WriteLine(@"{0},{1},{2},Uncompress", fileName, localName, i);
                 i++;
             }
             writer.Close();
@@ -877,6 +877,9 @@ namespace STCM2LEditor
                     line.TranslatedText = line.TranslatedText.Replace("?..","...?");
                     line.TranslatedText = line.TranslatedText.Replace("≪", "\"");
                     line.TranslatedText = line.TranslatedText.Replace("≫", "\"");
+                    line.TranslatedText = line.TranslatedText.Replace("『", "\"");
+                    line.TranslatedText = line.TranslatedText.Replace("』", "\"");
+                    line.TranslatedText = line.TranslatedText.Replace("канато", "Канато");
                     var eval = new MatchEvaluator(delegate(Match match){
                         var main = match.Groups["main"];
                         var value = match.Value;
@@ -892,7 +895,7 @@ namespace STCM2LEditor
                     line.TranslatedText = Regex.Replace(line.TranslatedText, @"\w(?<main>(\.\.\.)+)\w",eval);
                     line.TranslatedText = Regex.Replace(line.TranslatedText, @"(\w(?<main>(\.\.[\!\?]])))|(\w(?<main>(\.\.))$)|(^(?<main>(\.\.))$)", eval2);
 
-                    if(prev != null && line.TranslatedText.Length > 0)
+                    if(prev != null && !string.IsNullOrWhiteSpace(line.TranslatedText))
                     {
                         if((new char[] {','}.Contains(prev.TranslatedText.Last()) || char.IsLetter(prev.TranslatedText.Last())) && char.IsUpper(line.TranslatedText.First()))
                         {
@@ -1107,6 +1110,22 @@ namespace STCM2LEditor
         {
             var win = new FindInFilesWindow();
             win.ShowDialog();
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if(Stcm2l != null)
+            {
+                Stcm2l.DirectInsert = true;
+            }
+        }
+
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if(Stcm2l != null)
+            {
+                Stcm2l.DirectInsert = false;
+            }
         }
     }
 }

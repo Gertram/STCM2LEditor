@@ -22,7 +22,7 @@ namespace STCM2LEditor.classes.Action
         {
             try
             {
-                if (TranslatedText == null || TranslatedText == "")
+                if (TranslatedText == null || TranslatedText == "" ||IsReversed)
                     Original.Write(main, ref position);
                 else
                 {
@@ -40,5 +40,12 @@ namespace STCM2LEditor.classes.Action
         public override uint OpCode => ActionHelpers.ACTION_NAME;
 
         public override bool IsTranslated { get => Translated!= null && TranslatedText.Trim().Length > 0; set => base.IsTranslated = value; }
+        public override void ReverseStrings()
+        {
+            if (!string.IsNullOrWhiteSpace(TranslatedText))
+            {
+                base.ReverseStrings();
+            }
+        }
     }
 }

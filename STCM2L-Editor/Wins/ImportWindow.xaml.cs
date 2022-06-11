@@ -382,7 +382,7 @@ namespace STCM2LEditor
         {
             var list = new List<string>();
 
-            text = text.Replace(" )", ")");
+            /*text = text.Replace(" )", ")");
             text = text.Replace("( ", "(");
             for(int i =0;i < text.Length;)
             {
@@ -409,13 +409,13 @@ namespace STCM2LEditor
                     text = text.Substring(0, pos+3) + " " + text.Substring(pos+3);
                 }
                 i = pos + 3;
-            }
+            }*/
             
             var words = text.Split(splitters);
             var line = "";
             foreach (var item in words)
             {
-                var word = HandleNames(item);
+                var word = HandleNames(item);/*
                 word = word.Replace("?..", "...?");
                 word = word.Replace("?...", "...?");
                 word = word.Replace("!..", "...!");
@@ -424,7 +424,7 @@ namespace STCM2LEditor
                 word = word.Replace("Райто", "Лайто");
                 word = word.Replace("Рёджи", "Рейджи");
                 word = word.Replace("Пуси-гёрл", "Стервочка");
-                //word = AddDotPrev(word);
+                //word = AddDotPrev(word);*/
 
                 if (line.Length + word.Length >= GamePresetConfigProvider.Instance.Selected.MaxSymsInLine)
                 {
@@ -440,11 +440,11 @@ namespace STCM2LEditor
             {
                 AddLine(list, line);
             }
-            var last = list.Last();
+           /* var last = list.Last();
             if(!new char[] {'?','!','.',')',',' }.Contains(last.Last()))
             {
                 list[list.Count - 1] = last + ".";
-            }
+            }*/
             return list;
         }
         private void ImportTextCommand(object sender, ExecutedRoutedEventArgs e)
@@ -558,23 +558,23 @@ namespace STCM2LEditor
                 te.PropertyChanged += Te_PropertyChanged;
                 var temp = reader.ReadLine().Trim();
                 var pos = temp.IndexOf(':');
-                if (pos < temp.IndexOf(' '))
+                if (pos < temp.IndexOf(' ') || pos == temp.IndexOf('.') -1 || char.IsLetter(temp[pos+1]))
                 {
                     temp = temp.Substring(pos + 1).Trim();
                 }
-                /*foreach (var line in temp.Split(new char[] { '|' }))
+                foreach (var line in temp.Split(new char[] { '|' }))
                 {
                     temp = line;
-                    for (int i = 0; i < temp.Length; i++)
+                    /*for (int i = 0; i < temp.Length; i++)
                     {
                         if (char.IsLetter(temp[i]))
                         {
                             temp = temp.Substring(0, i) + temp.Substring(i, 1).ToUpper() + temp.Substring(i + 1);
                             break;
                         }
-                    }
+                    }*/
                     te.Lines.Add(new TextEntity.MyString { Text = temp });
-                }*/
+                }
                 TranslatedTexts.Add(te);
             }
         }

@@ -122,7 +122,7 @@ namespace STCM2LEditor.classes
             var newReplic = new Replic(name,new BindingList<TextAction>(texts));
             return newReplic;
         }
-        public bool DirectInsert { get; set; } = false;
+        public bool DirectInsert { get; set; }
         internal List<Replic> MakeReplics()
         {
             var replics = new List<Replic>();
@@ -200,6 +200,8 @@ namespace STCM2LEditor.classes
 
         public bool Load()
         {
+
+            DirectInsert = false;
             Global.ParameterCalls.Clear();
             Global.ActionCalls.Clear();
             OriginalFile = File.ReadAllBytes(FilePath);
@@ -269,53 +271,105 @@ namespace STCM2LEditor.classes
 
         private void WriteActions()
         {
-
-            foreach (var action in Actions)
+            if (DirectInsert)
             {
-                NewFile.AddRange(action.Write());
+                ReveseStringActions();
+                foreach (var action in Actions)
+                {
+                    NewFile.AddRange(action.Write());
+                }
+                ReveseStringActions();
+            }else
+            {
+                foreach (var action in Actions)
+                {
+                    NewFile.AddRange(action.Write());
+                }
             }
         }
-
-        private void SetAddresses(int extraDataAddress)
+        private void ReveseStringActions()
         {
-            int address = StartPosition;
-
-
-            foreach (var action in Actions)
-            {
-                action.Address = address;
-                address += action.Length;
-            }
-            int temp = 0;
             foreach (var item in NameActions)
             {
                 foreach (var action in item.Value)
                 {
-                    address = extraDataAddress;
-                    action.SetTranslateAddress(ref address);
-                    temp = address;
+                    action.ReverseStrings();
                 }
-                extraDataAddress = temp;
             }
             foreach (var item in PlaceActions)
             {
                 foreach (var action in item.Value)
                 {
-                    address = extraDataAddress;
-                    action.SetTranslateAddress(ref address);
-                    temp = address;
+                    action.ReverseStrings();
                 }
-                extraDataAddress = temp;
             }
 
             foreach (var action in TextActions)
             {
-                action.SetTranslateAddress(ref extraDataAddress);
+                action.ReverseStrings();
+            }
+        }
+
+        private void SetAddresses(int extraDataAddress)
+        {
+            if (!DirectInsert)
+            {
+                int address = StartPosition;
+
+
+                foreach (var action in Actions)
+                {
+                    action.Address = address;
+                    address += action.Length;
+                }
+                int temp = 0;
+                foreach (var item in NameActions)
+                {
+                    foreach (var action in item.Value)
+                    {
+                        address = extraDataAddress;
+                        action.SetTranslateAddress(ref address);
+                        temp = address;
+                    }
+                    extraDataAddress = temp;
+                }
+                foreach (var item in PlaceActions)
+                {
+                    foreach (var action in item.Value)
+                    {
+                        address = extraDataAddress;
+                        action.SetTranslateAddress(ref address);
+                        temp = address;
+                    }
+                    extraDataAddress = temp;
+                }
+
+                foreach (var action in TextActions)
+                {
+                    action.SetTranslateAddress(ref extraDataAddress);
+                }
+            }
+            else
+            {
+                ReveseStringActions();
+
+                int address = StartPosition;
+
+                foreach (var action in Actions)
+                {
+                    action.Address = address;
+                    address += action.Length;
+                }
+                ReveseStringActions();
             }
         }
 
         private void WriteExports()
         {
+            if (DirectInsert)
+            {
+                ReveseStringActions();
+            }
             NewFile.AddRange(Encoding.ASCII.GetBytes("EXPORT_DATA"));
             NewFile.Add(new byte());
 
@@ -323,51 +377,78 @@ namespace STCM2LEditor.classes
             {
                 NewFile.AddRange(export.Write());
             }
+            if (DirectInsert)
+            {
+                ReveseStringActions();
+            }
         }
 
         private void WriteCollectionLink()
         {
-
-            var extra = new List<byte[]>();
-            foreach (var item in NameActions)
+            if (!DirectInsert)
             {
-                extra.Add(item.Value[0].WriteTranslate());
+                var extra = new List<byte[]>();
+                foreach (var item in NameActions)
+                {
+                    extra.Add(item.Value[0].WriteTranslate());
+                }
+                foreach (var item in PlaceActions)
+                {
+                    extra.Add(item.Value[0].WriteTranslate());
+                }
+                foreach (var action in TextActions)
+                {
+                    extra.Add(action.WriteTranslate());
+                }
+
+                var sum = (uint)extra.Sum(x => x.Length);
+
+
+                if (CollectionLinkPosition != 0)
+                {
+                    NewFile.AddRange(Encoding.ASCII.GetBytes("COLLECTION_LINK"));
+                    NewFile.Add(new byte());
+                    NewFile.AddRange(BitConverter.GetBytes(0));
+                    UInt32 newCollectionLinkAddress = (UInt32)NewFile.Count + 4 + STCM2LHelpers.COLLECTION_LINK_PADDING + sum;
+
+                    NewFile.AddRange(BitConverter.GetBytes(newCollectionLinkAddress));
+                    NewFile.AddRange(new byte[STCM2LHelpers.COLLECTION_LINK_PADDING]);
+                }
+                foreach (var data in extra)
+                {
+                    NewFile.AddRange(data);
+                }
             }
-            foreach (var item in PlaceActions)
+            else
             {
-                extra.Add(item.Value[0].WriteTranslate());
-            }
-            foreach (var action in TextActions)
-            {
-                extra.Add(action.WriteTranslate());
-            }
+                if (CollectionLinkPosition != 0)
+                {
+                    NewFile.AddRange(Encoding.ASCII.GetBytes("COLLECTION_LINK"));
+                    NewFile.Add(new byte());
+                    NewFile.AddRange(BitConverter.GetBytes(0));
+                    UInt32 newCollectionLinkAddress = (UInt32)NewFile.Count + 4 + STCM2LHelpers.COLLECTION_LINK_PADDING;
 
-            var sum = (uint)extra.Sum(x => x.Length);
-
-
-            if (CollectionLinkPosition != 0)
-            {
-                NewFile.AddRange(Encoding.ASCII.GetBytes("COLLECTION_LINK"));
-                NewFile.Add(new byte());
-                NewFile.AddRange(BitConverter.GetBytes(0));
-                UInt32 newCollectionLinkAddress = (UInt32)NewFile.Count + 4 + STCM2LHelpers.COLLECTION_LINK_PADDING + sum;
-
-                NewFile.AddRange(BitConverter.GetBytes(newCollectionLinkAddress));
-                NewFile.AddRange(new byte[STCM2LHelpers.COLLECTION_LINK_PADDING]);
-            }
-            foreach (var data in extra)
-            {
-                NewFile.AddRange(data);
+                    NewFile.AddRange(BitConverter.GetBytes(newCollectionLinkAddress));
+                    NewFile.AddRange(new byte[STCM2LHelpers.COLLECTION_LINK_PADDING]);
+                }
             }
         }
 
         private int GetActionsLength()
         {
-            int length = 0;
 
+            int length = 0;
+            if (DirectInsert)
+            {
+                ReveseStringActions();
+            }
             foreach (var action in Actions)
             {
                 length += action.Length;
+            }
+            if (DirectInsert)
+            {
+                ReveseStringActions();
             }
 
             return length;

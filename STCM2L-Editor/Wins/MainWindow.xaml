@@ -152,7 +152,7 @@
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <CheckBox Content="Direct Insert" Grid.Row="0" HorizontalAlignment="Right"
+                <CheckBox Content="Direct Insert" Grid.Row="0" HorizontalAlignment="Right" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"
                           IsChecked="{Binding ElementName=root, Path=Stcm2l.DirectInsert, Mode=TwoWay}" Margin="20,0"/>
                     <Grid Grid.Row="1" DataContext="{Binding Path=Name, Mode=OneWay}">
                     <Grid.ColumnDefinitions>

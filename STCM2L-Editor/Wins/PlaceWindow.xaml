@@ -75,7 +75,7 @@
                         Name="NameBox2" 
                         Text="{Binding Path=TranslatedName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         TextChanged="NameBox2_TextChanged"
-                        MaxLength="20"
+                        MaxLength="30"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"
                     />

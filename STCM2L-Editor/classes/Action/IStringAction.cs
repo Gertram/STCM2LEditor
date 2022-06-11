@@ -9,5 +9,6 @@ namespace STCM2LEditor.classes.Action
 
         IStringAction Copy();
         bool IsTranslated { get; }
+        void ReverseStrings();
     }
 }

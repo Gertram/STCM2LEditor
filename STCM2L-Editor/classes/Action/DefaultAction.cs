@@ -33,6 +33,8 @@ namespace STCM2LEditor.classes.Action
 
         IReadOnlyList<IParameter> IAction.Parameters => Parameters;
 
+        public int TranslatedLength => Length;
+
         private int address = 0;
         public DefaultAction() { }
         public DefaultAction(uint opCode, IAction localCall, int paramCount)

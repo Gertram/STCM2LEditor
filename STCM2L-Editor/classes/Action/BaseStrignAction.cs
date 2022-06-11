@@ -131,7 +131,7 @@ namespace STCM2LEditor.classes.Action
         {
             try
             {
-                if (!IsTranslated)
+                if (!IsTranslated || IsReversed)
                 {
                     Original.Write(main, ref position);
                 }
@@ -176,5 +176,14 @@ namespace STCM2LEditor.classes.Action
         }
 
         public abstract IStringAction Copy();
+        protected bool IsReversed { get; set; } = false;
+
+        public virtual void ReverseStrings()
+        {
+            var temp = Original.Data;
+            Original.Data = Translated;
+            Translated = temp;
+            IsReversed = !IsReversed;
+        }
     }
 }
