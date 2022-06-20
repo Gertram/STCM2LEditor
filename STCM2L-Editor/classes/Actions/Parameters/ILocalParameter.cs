@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace STCM2LEditor.classes.Action.Parameters
+namespace STCM2LEditor.classes.Actions.Parameters
 {
     internal interface ILocalParameter
     {

@@ -1,4 +1,4 @@
-﻿using STCM2LEditor.classes.Action;
+﻿using STCM2LEditor.classes.Actions;
 using STCM2LEditor.utils;
 using System;
 using System.Collections.Generic;

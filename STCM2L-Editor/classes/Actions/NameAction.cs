@@ -1,9 +1,9 @@
 ﻿
-using STCM2LEditor.classes.Action.Parameters;
+using STCM2LEditor.classes.Actions.Parameters;
 using System;
 using STCM2LEditor.utils;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     internal partial class NameAction : BaseStringAction
     {

@@ -1,4 +1,4 @@
-﻿using STCM2LEditor.classes.Action.Parameters;
+﻿using STCM2LEditor.classes.Actions.Parameters;
 using System;
 using System.Globalization;
 using System.Windows.Data;

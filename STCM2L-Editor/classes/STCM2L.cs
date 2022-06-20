@@ -1,4 +1,4 @@
-﻿using STCM2LEditor.classes.Action;
+﻿using STCM2LEditor.classes.Actions;
 using STCM2LEditor.utils;
 using System;
 using System.Collections.Generic;
@@ -197,13 +197,13 @@ namespace STCM2LEditor.classes
             NewFile = new List<byte>();
             ActionSettings = actionSettings;
         }
-
+        private Global global = new Global();
         public bool Load()
         {
 
             DirectInsert = false;
-            Global.ParameterCalls.Clear();
-            Global.ActionCalls.Clear();
+            global.ParameterCalls.Clear();
+            global.ActionCalls.Clear();
             OriginalFile = File.ReadAllBytes(FilePath);
             StartPosition = FindStart();
             Exports.Clear();
@@ -534,7 +534,7 @@ namespace STCM2LEditor.classes
             do
             {
 
-                var action = DefaultAction.ReadFromFile(OriginalFile, currentAddress, this,ActionSettings);
+                var action = DefaultAction.ReadFromFile(OriginalFile, currentAddress, this,ActionSettings,global);
                 i++;
 
 
@@ -550,7 +550,7 @@ namespace STCM2LEditor.classes
             }
             while (currentAddress < maxAddress);
 
-            Global.RecoverGlobalCalls(Actions);
+            global.RecoverGlobalCalls(Actions);
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using STCM2LEditor.classes.Action;
+﻿using STCM2LEditor.classes.Actions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Data;
 
-using STCM2LEditor.classes.Action.Parameters;
+using STCM2LEditor.classes.Actions.Parameters;
 
 namespace STCM2LEditor
 {

@@ -69,11 +69,11 @@ namespace STCM2LEditor.GamePresets
             }
         }
 
-        public uint ACTION_CHOICE => classes.Action.ActionHelpers.ACTION_CHOICE;
+        public uint ACTION_CHOICE => classes.Actions.ActionHelpers.ACTION_CHOICE;
 
-        public uint ACTION_NEW_PAGE => classes.Action.ActionHelpers.ACTION_NEW_PAGE;
+        public uint ACTION_NEW_PAGE => classes.Actions.ActionHelpers.ACTION_NEW_PAGE;
 
-        public uint ACTION_SHOW_PLACE => classes.Action.ActionHelpers.ACTION_SHOW_PLACE;
+        public uint ACTION_SHOW_PLACE => classes.Actions.ActionHelpers.ACTION_SHOW_PLACE;
 
         public Encoding Encoding { get; set; } = Encoding.GetEncoding("shift-jis");
 

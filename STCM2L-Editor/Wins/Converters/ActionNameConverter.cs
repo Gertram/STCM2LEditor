@@ -1,5 +1,5 @@
 ﻿using STCM2LEditor.classes;
-using STCM2LEditor.classes.Action;
+using STCM2LEditor.classes.Actions;
 using System;
 using System.Globalization;
 using System.Windows.Data;

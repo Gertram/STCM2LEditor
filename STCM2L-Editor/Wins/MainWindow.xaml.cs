@@ -18,8 +18,8 @@ using System.Windows.Media;
 
 using STCM2LEditor.classes;
 using STCM2LEditor.utils;
-using STCM2LEditor.classes.Action;
-using STCM2LEditor.classes.Action.Parameters;
+using STCM2LEditor.classes.Actions;
+using STCM2LEditor.classes.Actions.Parameters;
 using STCM2LEditor.GamePresets;
 using STCM2LEditor.Wins;
 using System.Text.Json;

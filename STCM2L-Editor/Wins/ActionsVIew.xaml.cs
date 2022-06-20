@@ -1,4 +1,4 @@
-﻿using STCM2LEditor.classes.Action;
+﻿using STCM2LEditor.classes.Actions;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;

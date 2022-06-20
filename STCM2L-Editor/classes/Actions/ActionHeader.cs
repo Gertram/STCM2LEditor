@@ -1,7 +1,7 @@
 ﻿
 using STCM2LEditor.utils;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     public partial class ActionHeader
     {

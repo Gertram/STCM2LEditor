@@ -1,6 +1,6 @@
 ﻿using STCM2LEditor.utils;
 using System.Linq;
-namespace STCM2LEditor.classes.Action.Parameters
+namespace STCM2LEditor.classes.Actions.Parameters
 {
     public class StringData:IParameterData
     {

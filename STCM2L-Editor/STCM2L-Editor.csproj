@@ -190,15 +190,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BasePropertyChanged.cs" />
-    <Compile Include="classes\Action\ActionHeader.cs" />
-    <Compile Include="classes\Action\IStringAction.cs" />
-    <Compile Include="classes\Action\NameAction.cs" />
-    <Compile Include="classes\Action\Parameters\ILocalParameter.cs" />
-    <Compile Include="classes\Action\Parameters\ParameterDataHelpers.cs" />
-    <Compile Include="classes\Action\TextAction.cs" />
-    <Compile Include="classes\Action\BaseStrignAction.cs" />
-    <Compile Include="classes\Action\PlaceAction.cs" />
-    <Compile Include="classes\Action\Parameters\StringParameter.cs" />
+    <Compile Include="classes\Actions\ActionHeader.cs" />
+    <Compile Include="classes\Actions\DefaultAction.cs" />
+    <Compile Include="classes\Actions\IStringAction.cs" />
+    <Compile Include="classes\Actions\NameAction.cs" />
+    <Compile Include="classes\Actions\Parameters\ILocalParameter.cs" />
+    <Compile Include="classes\Actions\Parameters\ParameterDataHelpers.cs" />
+    <Compile Include="classes\Actions\TextAction.cs" />
+    <Compile Include="classes\Actions\BaseStrignAction.cs" />
+    <Compile Include="classes\Actions\PlaceAction.cs" />
+    <Compile Include="classes\Actions\Parameters\StringParameter.cs" />
     <Compile Include="classes\IActionSettings.cs" />
     <Compile Include="classes\InvalidFileType.cs" />
     <Compile Include="classes\IString.cs" />
@@ -216,19 +217,19 @@
     <Compile Include="Wins\ActionsVIew.xaml.cs">
       <DependentUpon>ActionsVIew.xaml</DependentUpon>
     </Compile>
-    <Compile Include="classes\Action\Parameters\BaseParameter.cs" />
+    <Compile Include="classes\Actions\Parameters\BaseParameter.cs" />
     <Compile Include="classes\Global.cs" />
-    <Compile Include="classes\Action\Parameters\GlobalParameter.cs" />
-    <Compile Include="classes\Action\IAction.cs" />
-    <Compile Include="classes\Action\ActionHelpers.cs" />
-    <Compile Include="classes\Action\Parameters\IParameter.cs" />
-    <Compile Include="classes\Action\Parameters\IParameterData.cs" />
-    <Compile Include="classes\Action\Parameters\IParameterHelpers.cs" />
-    <Compile Include="classes\Action\Parameters\LocalParameter.cs" />
-    <Compile Include="classes\Action\Parameters\ParameterData.cs" />
+    <Compile Include="classes\Actions\Parameters\GlobalParameter.cs" />
+    <Compile Include="classes\Actions\IAction.cs" />
+    <Compile Include="classes\Actions\ActionHelpers.cs" />
+    <Compile Include="classes\Actions\Parameters\IParameter.cs" />
+    <Compile Include="classes\Actions\Parameters\IParameterData.cs" />
+    <Compile Include="classes\Actions\Parameters\IParameterHelpers.cs" />
+    <Compile Include="classes\Actions\Parameters\LocalParameter.cs" />
+    <Compile Include="classes\Actions\Parameters\ParameterData.cs" />
     <Compile Include="Wins\Converters\ParameterLengthConverter.cs" />
     <Compile Include="Wins\Converters\ParamterExtraTextConverter.cs" />
-    <Compile Include="classes\Action\Parameters\StringData.cs" />
+    <Compile Include="classes\Actions\Parameters\StringData.cs" />
     <Compile Include="classes\TextEntity.cs" />
     <Compile Include="Wins\Converters\SuffixConverter.cs" />
     <Compile Include="Wins\Converters\TextBoxColorConverter.cs" />
@@ -306,9 +307,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="classes\Action\DefaultAction.cs" />
     <Compile Include="classes\Export.cs" />
-    <Compile Include="classes\Action\Parameters\Parameter.cs" />
+    <Compile Include="classes\Actions\Parameters\Parameter.cs" />
     <Compile Include="classes\STCM2L.cs" />
     <Compile Include="Wins\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

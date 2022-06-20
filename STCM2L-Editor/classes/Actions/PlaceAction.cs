@@ -1,9 +1,9 @@
-﻿using STCM2LEditor.classes.Action.Parameters;
+﻿using STCM2LEditor.classes.Actions.Parameters;
 using STCM2LEditor.utils;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     internal partial class PlaceAction : BaseStringAction
     {

@@ -1,10 +1,10 @@
-﻿using STCM2LEditor.classes.Action.Parameters;
+﻿using STCM2LEditor.classes.Actions.Parameters;
 using STCM2LEditor.utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     public class DefaultAction : IAction
     {
@@ -47,7 +47,7 @@ namespace STCM2LEditor.classes.Action
                 Parameters.Add(new Parameter());
             }
         }
-        private static IAction ParseAction(byte[] file,int base_seek,STCM2L stcm2l,ActionHeader header,IGameSettings settings)
+        private static IAction ParseAction(byte[] file,int base_seek,STCM2L stcm2l,ActionHeader header,IGameSettings settings,Global global)
         {
             int seek = base_seek;
                 if (header.OpCode == settings.ACTION_NAME && settings.ACTION_NAME != 0)
@@ -111,29 +111,29 @@ namespace STCM2LEditor.classes.Action
                 }
 
             var action = new DefaultAction();
-            action.ReadFromFile(seek, file, header);
+            action.ReadFromFile(seek, file, header,global);
             return action;
         }
-        internal static IAction ReadFromFile(byte[] file, int seek, STCM2L stcm2l,IGameSettings settings)
+        internal static IAction ReadFromFile(byte[] file, int seek, STCM2L stcm2l,IGameSettings settings, Global global)
         {
             var header = ActionHeader.ReadFromFile(file, ref seek);
-            var action = ParseAction(file, seek, stcm2l, header, settings);
+            var action = ParseAction(file, seek, stcm2l, header, settings,global);
             if(header.IsLocalCall == 1)
             {
-                if(Global.ActionCalls.TryGetValue(header.OpCode,out var list))
+                if(global.ActionCalls.TryGetValue(header.OpCode,out var list))
                 {
                     list.Add(action);
                 }
                 else
                 {
                     list = new List<IAction> { action };
-                    Global.ActionCalls.Add(header.OpCode, list);
+                    global.ActionCalls.Add(header.OpCode, list);
                 }
             }
             return action;
         }
         private ActionHeader Header;
-        internal void ReadFromFile(int seek, byte[] file, ActionHeader header)
+        internal void ReadFromFile(int seek, byte[] file, ActionHeader header,Global global)
         {
             address = header.Address;
             OpCode = header.OpCode;
@@ -142,7 +142,7 @@ namespace STCM2LEditor.classes.Action
             var length = header.Length;
             for (int i = 0; i < header.ParametersCount; i++)
             {
-                Parameters.Add(ParseParameter(file, ref seek, header.ParametersCount,length));
+                Parameters.Add(ParseParameter(file, ref seek, header.ParametersCount,length,global));
             }
 
             var extraDataLength = length - ActionHelpers.HEADER_LENGTH - ParametersLength;
@@ -160,13 +160,13 @@ namespace STCM2LEditor.classes.Action
         {
             return (((val >> 24) & 0xff) != 0xff) && (val > Address) && (val < Address + length);
         }
-        private IParameter ParseParameter(byte[] file, ref int seek, int parametersCount,int length)
+        private IParameter ParseParameter(byte[] file, ref int seek, int parametersCount,int length,Global global)
         {
             var param = Parameter.ReadFromFile(file, ref seek);
 
             if (param.Value1 == 0xffffff41)
             {
-                return new GlobalParameter(param);
+                return new GlobalParameter(param,global);
             }
             else if (IsLocalParam(param.Value1,length))
             {   

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace STCM2LEditor.classes.Action.Parameters
+namespace STCM2LEditor.classes.Actions.Parameters
 {
     public partial class ParameterData : IParameterData
     {

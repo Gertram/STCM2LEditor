@@ -1,7 +1,7 @@
-﻿using STCM2LEditor.classes.Action.Parameters;
+﻿using STCM2LEditor.classes.Actions.Parameters;
 using System.Collections.Generic;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     public interface IAction
     {

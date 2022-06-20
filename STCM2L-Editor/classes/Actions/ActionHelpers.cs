@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace STCM2LEditor.classes.Action
+namespace STCM2LEditor.classes.Actions
 {
     internal static partial class ActionHelpers
     {

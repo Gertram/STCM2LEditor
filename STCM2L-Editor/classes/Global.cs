@@ -1,15 +1,15 @@
-﻿using STCM2LEditor.classes.Action.Parameters;
+﻿using STCM2LEditor.classes.Actions.Parameters;
 using System.Collections.Generic;
-using STCM2LEditor.classes.Action;
+using STCM2LEditor.classes.Actions;
 using System.Linq;
 using System;
 namespace STCM2LEditor.classes
 {
-    static class Global
+    class Global
     {
-        public static Dictionary<uint, List<GlobalParameter>> ParameterCalls { get; set; }
-        public static Dictionary<uint, List<IAction>> ActionCalls { get; set; }
-        public static void RecoverGlobalCalls(ICollection<IAction> actions)
+        public Dictionary<uint, List<GlobalParameter>> ParameterCalls { get; set; }
+        public Dictionary<uint, List<IAction>> ActionCalls { get; set; }
+        public void RecoverGlobalCalls(ICollection<IAction> actions)
         {
             foreach (var item in ParameterCalls)
             {
@@ -26,7 +26,7 @@ namespace STCM2LEditor.classes
                     throw new Exception("Found global call without action");
                 }
             }
-            Global.ParameterCalls.Clear();
+            ParameterCalls.Clear();
             foreach (var item in ActionCalls)
             {
                 try
@@ -42,9 +42,9 @@ namespace STCM2LEditor.classes
                     throw new Exception("Found global call without action");
                 }
             }
-            Global.ActionCalls.Clear();
+            ActionCalls.Clear();
         }
-        static Global()
+        internal Global()
         {
             ParameterCalls = new Dictionary<uint, List<GlobalParameter>>();
             ActionCalls = new Dictionary<uint, List<IAction>>();

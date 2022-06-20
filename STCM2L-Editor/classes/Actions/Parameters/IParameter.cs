@@ -1,4 +1,4 @@
-﻿namespace STCM2LEditor.classes.Action.Parameters
+﻿namespace STCM2LEditor.classes.Actions.Parameters
 {
 
     public interface IParameter

@@ -1,7 +1,7 @@
 ﻿
 using STCM2LEditor.utils;
 
-namespace STCM2LEditor.classes.Action.Parameters
+namespace STCM2LEditor.classes.Actions.Parameters
 {
     internal abstract class BaseParameter : IParameter
     {
